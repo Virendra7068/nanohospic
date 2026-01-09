@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:nanohospic/screens/create_pharmacy.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -616,25 +615,5 @@ class _GetCompanyListScreenState extends State<GetCompanyListScreen> {
       Colors.indigo,
     ];
     return colors[index % colors.length];
-  }
-
-  Color _getStatusColor(Company company) {
-    if (company.deleted != null) {
-      return Colors.red;
-    } else if (company.lastModified != null) {
-      return Colors.orange;
-    } else {
-      return Colors.green;
-    }
-  }
-
-  IconData _getStatusIcon(Company company) {
-    if (company.deleted != null) {
-      return Iconsax.close_circle;
-    } else if (company.lastModified != null) {
-      return Iconsax.edit;
-    } else {
-      return Iconsax.tick_circle;
-    }
   }
 }

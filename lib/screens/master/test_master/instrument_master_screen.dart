@@ -1,4 +1,4 @@
-// lib/screens/master/group/group_screen.dart
+// lib/screens/master/instrument/instrument_screen.dart
 // ignore_for_file: avoid_print, depend_on_referenced_packages
 
 import 'dart:async';
@@ -6,29 +6,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:nanohospic/database/database_provider.dart';
-import 'package:nanohospic/database/entity/group_entity.dart';
-import 'package:nanohospic/database/repository/group_repo.dart';
+import 'package:nanohospic/database/entity/instrument_entity.dart';
+import 'package:nanohospic/database/repository/instrument_master_repo.dart';
 import 'package:nanohospic/screens/banner_widget.dart';
 import 'dart:convert';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
-class GroupScreen extends StatefulWidget {
-  const GroupScreen({super.key});
+class InstrumentScreen extends StatefulWidget {
+  const InstrumentScreen({super.key});
 
   @override
-  State<GroupScreen> createState() => _GroupScreenState();
+  State<InstrumentScreen> createState() => _InstrumentScreenState();
 }
 
-class _GroupScreenState extends State<GroupScreen> {
-  List<GroupEntity> _groups = [];
-  List<GroupEntity> _filteredGroups = [];
+class _InstrumentScreenState extends State<InstrumentScreen> {
+  List<InstrumentEntity> _instruments = [];
+  List<InstrumentEntity> _filteredInstruments = [];
   bool _isLoading = false;
   bool _isSyncing = false;
   String? _error;
   final _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
-  late GroupRepository _groupRepository;
+  late InstrumentRepository _instrumentRepository;
   Timer? _syncTimer;
   int _totalRecords = 0;
   int _syncedRecords = 0;
@@ -39,7 +39,7 @@ class _GroupScreenState extends State<GroupScreen> {
     super.initState();
     _initializeDatabase();
     _searchController.addListener(() {
-      _filterGroups(_searchController.text);
+      _filterInstruments(_searchController.text);
     });
 
     _syncTimer = Timer.periodic(Duration(seconds: 30), (timer) {
@@ -49,24 +49,24 @@ class _GroupScreenState extends State<GroupScreen> {
 
   Future<void> _initializeDatabase() async {
     final db = await DatabaseProvider.database;
-    _groupRepository = GroupRepository(db.groupDao);
-    _loadLocalGroups();
+    _instrumentRepository = InstrumentRepository(db.instrumentDao);
+    _loadLocalInstruments();
     _loadSyncStats();
     _syncFromServer();
   }
 
-  Future<void> _loadLocalGroups() async {
+  Future<void> _loadLocalInstruments() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final groups = await _groupRepository.getAllGroups();
-      print('Loaded ${groups.length} groups from database');
+      final instruments = await _instrumentRepository.getAllInstruments();
+      print('Loaded ${instruments.length} instruments from database');
 
       setState(() {
-        _groups = groups;
-        _filteredGroups = List.from(_groups);
+        _instruments = instruments;
+        _filteredInstruments = List.from(_instruments);
         _isLoading = false;
       });
     } catch (e) {
@@ -78,9 +78,9 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Future<void> _loadSyncStats() async {
-    _totalRecords = await _groupRepository.getTotalCount();
-    _syncedRecords = await _groupRepository.getSyncedCount();
-    _pendingRecords = await _groupRepository.getPendingCount();
+    _totalRecords = await _instrumentRepository.getTotalCount();
+    _syncedRecords = await _instrumentRepository.getSyncedCount();
+    _pendingRecords = await _instrumentRepository.getPendingCount();
     setState(() {});
   }
 
@@ -91,14 +91,14 @@ class _GroupScreenState extends State<GroupScreen> {
     });
     try {
       final response = await http
-          .get(Uri.parse('http://202.140.138.215:85/api/GroupApi'))
+          .get(Uri.parse('http://202.140.138.215:85/api/InstrumentApi'))
           .timeout(Duration(seconds: 10));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         if (data['success'] == true) {
-          final List<dynamic> groupsData = data['data'];
-          print('Received ${groupsData.length} groups from server');
-          final List<Map<String, dynamic>> groupList = groupsData
+          final List<dynamic> instrumentsData = data['data'];
+          print('Received ${instrumentsData.length} instruments from server');
+          final List<Map<String, dynamic>> instrumentList = instrumentsData
               .map<Map<String, dynamic>>((item) {
                 if (item is Map<String, dynamic>) {
                   return item;
@@ -109,8 +109,8 @@ class _GroupScreenState extends State<GroupScreen> {
               })
               .where((map) => map.isNotEmpty)
               .toList();
-          await _groupRepository.syncFromServer(groupList);
-          await _loadLocalGroups();
+          await _instrumentRepository.syncFromServer(instrumentList);
+          await _loadLocalInstruments();
           await _loadSyncStats();
           await _syncPendingChanges();
           if (mounted) {
@@ -154,26 +154,26 @@ class _GroupScreenState extends State<GroupScreen> {
 
   Future<void> _syncPendingChanges() async {
     try {
-      final pendingGroups = await _groupRepository.getPendingSync();
-      for (final group in pendingGroups) {
-        if (group.isDeleted) {
-          if (group.serverId != null) {
-            await _deleteFromServer(group.serverId!);
-            await _groupRepository.markAsSynced(group.id!);
+      final pendingInstruments = await _instrumentRepository.getPendingSync();
+      for (final instrument in pendingInstruments) {
+        if (instrument.isDeleted) {
+          if (instrument.serverId != null) {
+            await _deleteFromServer(instrument.serverId!);
+            await _instrumentRepository.markAsSynced(instrument.id!);
           } else {
-            await _groupRepository.markAsSynced(group.id!);
+            await _instrumentRepository.markAsSynced(instrument.id!);
           }
-        } else if (group.serverId == null) {
-          final serverId = await _addToServer(group);
+        } else if (instrument.serverId == null) {
+          final serverId = await _addToServer(instrument);
           if (serverId != null) {
-            group.serverId = serverId;
-            await _groupRepository.updateGroup(group);
-            await _groupRepository.markAsSynced(group.id!);
+            instrument.serverId = serverId;
+            await _instrumentRepository.updateInstrument(instrument);
+            await _instrumentRepository.markAsSynced(instrument.id!);
           }
         } else {
-          final success = await _updateOnServer(group);
+          final success = await _updateOnServer(instrument);
           if (success) {
-            await _groupRepository.markAsSynced(group.id!);
+            await _instrumentRepository.markAsSynced(instrument.id!);
           }
         }
       }
@@ -192,19 +192,16 @@ class _GroupScreenState extends State<GroupScreen> {
     }
   }
 
-  Future<int?> _addToServer(GroupEntity group) async {
+  Future<int?> _addToServer(InstrumentEntity instrument) async {
     try {
       final response = await http
           .post(
-            Uri.parse('http://202.140.138.215:85/api/GroupApi'),
+            Uri.parse('http://202.140.138.215:85/api/InstrumentApi'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
               'id': 0,
-              'name': group.name,
-              'description': group.description,
-              'code': group.groupCode,
-              'type': group.type,
-              'status': group.status,
+              'machineName': instrument.machineName,
+              'description': instrument.description,
             }),
           )
           .timeout(Duration(seconds: 5));
@@ -219,21 +216,18 @@ class _GroupScreenState extends State<GroupScreen> {
     return null;
   }
 
-  Future<bool> _updateOnServer(GroupEntity group) async {
+  Future<bool> _updateOnServer(InstrumentEntity instrument) async {
     try {
       final response = await http
           .put(
             Uri.parse(
-              'http://202.140.138.215:85/api/GroupApi/${group.serverId}',
+              'http://202.140.138.215:85/api/InstrumentApi/${instrument.serverId}',
             ),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'id': group.serverId,
-              'name': group.name,
-              'description': group.description,
-              'code': group.groupCode,
-              'type': group.type,
-              'status': group.status,
+              'id': instrument.serverId,
+              'machineName': instrument.machineName,
+              'description': instrument.description,
             }),
           )
           .timeout(Duration(seconds: 5));
@@ -255,7 +249,7 @@ class _GroupScreenState extends State<GroupScreen> {
     try {
       final response = await http
           .delete(
-            Uri.parse('http://202.140.138.215:85/api/GroupApi/$serverId'),
+            Uri.parse('http://202.140.138.215:85/api/InstrumentApi/$serverId'),
             headers: {'Content-Type': 'application/json'},
           )
           .timeout(Duration(seconds: 5));
@@ -267,16 +261,18 @@ class _GroupScreenState extends State<GroupScreen> {
     }
   }
 
-  void _filterGroups(String query) {
+  void _filterInstruments(String query) {
     setState(() {
       if (query.isEmpty) {
-        _filteredGroups = List.from(_groups);
+        _filteredInstruments = List.from(_instruments);
       } else {
-        _filteredGroups = _groups
+        _filteredInstruments = _instruments
             .where(
-              (group) =>
-                  group.name.toLowerCase().contains(query.toLowerCase()) ||
-                  (group.description ?? '')
+              (instrument) =>
+                  instrument.machineName
+                      .toLowerCase()
+                      .contains(query.toLowerCase()) ||
+                  instrument.description
                       .toLowerCase()
                       .contains(query.toLowerCase()),
             )
@@ -285,25 +281,22 @@ class _GroupScreenState extends State<GroupScreen> {
     });
   }
 
-  Future<void> _addGroup(String name, String? description, String? groupCode, String type, String status) async {
+  Future<void> _addInstrument(String machineName, String description) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final group = GroupEntity(
-        name: name,
+      final instrument = InstrumentEntity(
+        machineName: machineName,
         description: description,
-        groupCode: groupCode,
-        type: type,
-        status: status,
         createdAt: DateTime.now().toIso8601String(),
         isSynced: false,
       );
 
-      await _groupRepository.insertGroup(group);
+      await _instrumentRepository.insertInstrument(instrument);
 
-      await _loadLocalGroups();
+      await _loadLocalInstruments();
       await _loadSyncStats();
 
       await _syncPendingChanges();
@@ -315,7 +308,7 @@ class _GroupScreenState extends State<GroupScreen> {
               children: [
                 Icon(Icons.save, color: Colors.white, size: 20),
                 SizedBox(width: 8),
-                Text('$name saved locally'),
+                Text('$machineName saved locally'),
               ],
             ),
             backgroundColor: Colors.blue,
@@ -328,7 +321,7 @@ class _GroupScreenState extends State<GroupScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = 'Failed to add group: $e';
+        _error = 'Failed to add instrument: $e';
       });
 
       if (mounted) {
@@ -356,14 +349,14 @@ class _GroupScreenState extends State<GroupScreen> {
     }
   }
 
-  Future<bool> _deleteGroup(int groupId) async {
+  Future<bool> _deleteInstrument(int instrumentId) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _groupRepository.deleteGroup(groupId);
-      await _loadLocalGroups();
+      await _instrumentRepository.deleteInstrument(instrumentId);
+      await _loadLocalInstruments();
       await _loadSyncStats();
 
       await _syncPendingChanges();
@@ -371,7 +364,7 @@ class _GroupScreenState extends State<GroupScreen> {
       return true;
     } catch (e) {
       setState(() {
-        _error = 'Failed to delete group: $e';
+        _error = 'Failed to delete instrument: $e';
       });
       return false;
     } finally {
@@ -381,7 +374,7 @@ class _GroupScreenState extends State<GroupScreen> {
     }
   }
 
-  void _showDeleteConfirmationDialog(GroupEntity group) {
+  void _showDeleteConfirmationDialog(InstrumentEntity instrument) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -410,7 +403,7 @@ class _GroupScreenState extends State<GroupScreen> {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'Delete Group?',
+                  'Delete Instrument?',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -419,7 +412,7 @@ class _GroupScreenState extends State<GroupScreen> {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'Are you sure you want to delete "${group.name}"?',
+                  'Are you sure you want to delete "${instrument.machineName}"?',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
                 ),
@@ -446,7 +439,7 @@ class _GroupScreenState extends State<GroupScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           Navigator.of(context).pop();
-                          final success = await _deleteGroup(group.id!);
+                          final success = await _deleteInstrument(instrument.id!);
 
                           if (success && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -459,7 +452,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Group "${group.name}" deleted'),
+                                    Text('Instrument "${instrument.machineName}" deleted'),
                                   ],
                                 ),
                                 backgroundColor: Colors.green,
@@ -480,7 +473,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Failed to delete group'),
+                                    Text('Failed to delete instrument'),
                                   ],
                                 ),
                                 backgroundColor: Colors.red,
@@ -521,12 +514,9 @@ class _GroupScreenState extends State<GroupScreen> {
     );
   }
 
-  void _showAddGroupDialog() {
-    final nameController = TextEditingController();
+  void _showAddInstrumentDialog() {
+    final machineNameController = TextEditingController();
     final descriptionController = TextEditingController();
-    final groupCodeController = TextEditingController();
-    String selectedType = 'general';
-    String selectedStatus = 'active';
     bool isSubmitting = false;
 
     showDialog(
@@ -547,51 +537,51 @@ class _GroupScreenState extends State<GroupScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                      colors: [Colors.indigo.shade400, Colors.indigo.shade600],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.group,
+                    Icons.settings_applications,
                     color: Colors.white,
                     size: 32,
                   ),
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'Add New Group',
+                  'Add New Instrument',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade800,
+                    color: Colors.indigo.shade800,
                   ),
                 ),
                 SizedBox(height: 20),
                 TextField(
-                  controller: nameController,
+                  controller: machineNameController,
                   decoration: InputDecoration(
-                    labelText: 'Group Name *',
+                    labelText: 'Machine Name',
                     labelStyle: TextStyle(
-                      color: Colors.blue.shade600,
+                      color: Colors.indigo.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade300),
+                      borderSide: BorderSide(color: Colors.indigo.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue, width: 2),
+                      borderSide: BorderSide(color: Colors.indigo, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.blue.shade50,
-                    hintText: 'Enter group name',
+                    fillColor: Colors.indigo.shade50,
+                    hintText: 'Enter machine name',
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     prefixIcon: Container(
                       margin: EdgeInsets.only(right: 8, left: 12),
-                      child: Icon(Icons.group, color: Colors.blue.shade600),
+                      child: Icon(Icons.build, color: Colors.indigo.shade600),
                     ),
                     prefixIconConstraints: BoxConstraints(minWidth: 40),
                   ),
@@ -604,151 +594,28 @@ class _GroupScreenState extends State<GroupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Description',
                     labelStyle: TextStyle(
-                      color: Colors.blue.shade600,
+                      color: Colors.indigo.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade300),
+                      borderSide: BorderSide(color: Colors.indigo.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue, width: 2),
+                      borderSide: BorderSide(color: Colors.indigo, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.blue.shade50,
-                    hintText: 'Enter group description',
+                    fillColor: Colors.indigo.shade50,
+                    hintText: 'Enter instrument description',
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     prefixIcon: Container(
                       margin: EdgeInsets.only(right: 8, left: 12),
-                      child: Icon(Icons.description, color: Colors.blue.shade600),
+                      child: Icon(Icons.description, color: Colors.indigo.shade600),
                     ),
                     prefixIconConstraints: BoxConstraints(minWidth: 40),
                   ),
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: groupCodeController,
-                  decoration: InputDecoration(
-                    labelText: 'Group Code',
-                    labelStyle: TextStyle(
-                      color: Colors.blue.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue, width: 2),
-                    ),
-                    filled: true,
-                    fillColor: Colors.blue.shade50,
-                    hintText: 'Enter group code (optional)',
-                    hintStyle: TextStyle(color: Colors.grey.shade500),
-                    prefixIcon: Container(
-                      margin: EdgeInsets.only(right: 8, left: 12),
-                      child: Icon(Icons.code, color: Colors.blue.shade600),
-                    ),
-                    prefixIconConstraints: BoxConstraints(minWidth: 40),
-                  ),
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Type',
-                            style: TextStyle(
-                              color: Colors.blue.shade600,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue.shade300),
-                            ),
-                            child: DropdownButton<String>(
-                              value: selectedType,
-                              isExpanded: true,
-                              underline: SizedBox(),
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade600),
-                              items: ['general', 'patient', 'doctor', 'staff', 'test']
-                                  .map((type) => DropdownMenuItem<String>(
-                                        value: type,
-                                        child: Text(
-                                          type[0].toUpperCase() + type.substring(1),
-                                          style: TextStyle(color: Colors.grey.shade800),
-                                        ),
-                                      ))
-                                  .toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedType = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Status',
-                            style: TextStyle(
-                              color: Colors.blue.shade600,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue.shade300),
-                            ),
-                            child: DropdownButton<String>(
-                              value: selectedStatus,
-                              isExpanded: true,
-                              underline: SizedBox(),
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade600),
-                              items: ['active', 'inactive']
-                                  .map((status) => DropdownMenuItem<String>(
-                                        value: status,
-                                        child: Text(
-                                          status[0].toUpperCase() + status.substring(1),
-                                          style: TextStyle(color: Colors.grey.shade800),
-                                        ),
-                                      ))
-                                  .toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedStatus = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
                 SizedBox(height: 24),
                 Row(
@@ -777,7 +644,7 @@ class _GroupScreenState extends State<GroupScreen> {
                         onPressed: isSubmitting
                             ? null
                             : () async {
-                                if (nameController.text.isEmpty) {
+                                if (machineNameController.text.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Row(
@@ -788,7 +655,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                             size: 20,
                                           ),
                                           SizedBox(width: 8),
-                                          Text('Please enter a group name'),
+                                          Text('Please enter a machine name'),
                                         ],
                                       ),
                                       backgroundColor: Colors.orange,
@@ -805,12 +672,9 @@ class _GroupScreenState extends State<GroupScreen> {
                                   isSubmitting = true;
                                 });
 
-                                await _addGroup(
-                                  nameController.text,
-                                  descriptionController.text.isNotEmpty ? descriptionController.text : null,
-                                  groupCodeController.text.isNotEmpty ? groupCodeController.text : null,
-                                  selectedType,
-                                  selectedStatus,
+                                await _addInstrument(
+                                  machineNameController.text,
+                                  descriptionController.text,
                                 );
 
                                 if (!context.mounted) return;
@@ -827,7 +691,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                         ),
                                         SizedBox(width: 8),
                                         Text(
-                                          '${nameController.text} added successfully!',
+                                          '${machineNameController.text} added successfully!',
                                         ),
                                       ],
                                     ),
@@ -840,7 +704,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                 );
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Colors.indigo,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -864,7 +728,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                 children: [
                                   Icon(Icons.add, size: 20),
                                   SizedBox(width: 8),
-                                  Text('Add Group'),
+                                  Text('Add Instrument'),
                                 ],
                               ),
                       ),
@@ -926,10 +790,10 @@ class _GroupScreenState extends State<GroupScreen> {
                   child: Column(
                     children: [
                       _buildSyncStatItem(
-                        'Total Groups',
+                        'Total Instruments',
                         '$_totalRecords',
-                        Icons.group,
-                        Colors.blue,
+                        Icons.settings_applications,
+                        Colors.indigo,
                       ),
                       SizedBox(height: 12),
                       _buildSyncStatItem(
@@ -1070,7 +934,7 @@ class _GroupScreenState extends State<GroupScreen> {
             ),
           ),
         ],
-      )
+      ),
     );
   }
 
@@ -1122,7 +986,7 @@ class _GroupScreenState extends State<GroupScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          'Groups',
+                          'Instruments',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -1138,7 +1002,7 @@ class _GroupScreenState extends State<GroupScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Manage all your groups',
+                          'Manage all your laboratory instruments',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.9),
@@ -1155,7 +1019,7 @@ class _GroupScreenState extends State<GroupScreen> {
                       autofocus: true,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Search group...',
+                        hintText: 'Search instrument...',
                         hintStyle: TextStyle(
                           color: Colors.white.withOpacity(0.7),
                         ),
@@ -1166,7 +1030,7 @@ class _GroupScreenState extends State<GroupScreen> {
                             setState(() {
                               _isSearching = false;
                               _searchController.clear();
-                              _filteredGroups = List.from(_groups);
+                              _filteredInstruments = List.from(_instruments);
                             });
                           },
                         ),
@@ -1247,8 +1111,8 @@ class _GroupScreenState extends State<GroupScreen> {
                       .then(delay: 1000.ms),
             ),
           FloatingActionButton(
-                onPressed: _showAddGroupDialog,
-                backgroundColor: Colors.blue.shade700,
+                onPressed: _showAddInstrumentDialog,
+                backgroundColor: Colors.indigo.shade700,
                 foregroundColor: Colors.white,
                 elevation: 6,
                 shape: RoundedRectangleBorder(
@@ -1266,9 +1130,9 @@ class _GroupScreenState extends State<GroupScreen> {
   }
 
   Widget _buildBody() {
-    final displayGroups = _isSearching ? _filteredGroups : _groups;
+    final displayInstruments = _isSearching ? _filteredInstruments : _instruments;
 
-    if (_isLoading && _groups.isEmpty) {
+    if (_isLoading && _instruments.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1277,19 +1141,19 @@ class _GroupScreenState extends State<GroupScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Colors.indigo.shade50,
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
                 ),
               ),
             ),
             SizedBox(height: 20),
             Text(
-                  'Loading groups...',
+                  'Loading instruments...',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -1348,11 +1212,11 @@ class _GroupScreenState extends State<GroupScreen> {
               ),
               SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _loadLocalGroups,
+                onPressed: _loadLocalInstruments,
                 icon: Icon(Icons.refresh, size: 20),
                 label: Text('Try Again'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -1367,7 +1231,7 @@ class _GroupScreenState extends State<GroupScreen> {
       );
     }
 
-    if (_groups.isEmpty) {
+    if (_instruments.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(20),
@@ -1379,16 +1243,16 @@ class _GroupScreenState extends State<GroupScreen> {
                     height: 120,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.blue.shade100, Colors.blue.shade200],
+                        colors: [Colors.indigo.shade100, Colors.indigo.shade200],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.group,
+                      Icons.settings_applications,
                       size: 60,
-                      color: Colors.blue.shade600,
+                      color: Colors.indigo.shade600,
                     ),
                   )
                   .animate(onPlay: (controller) => controller.repeat())
@@ -1396,7 +1260,7 @@ class _GroupScreenState extends State<GroupScreen> {
                   .then(),
               SizedBox(height: 24),
               Text(
-                'No Groups Found',
+                'No Instruments Found',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -1413,18 +1277,18 @@ class _GroupScreenState extends State<GroupScreen> {
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Text(
-                  'Get started by adding your first group',
+                  'Get started by adding your first laboratory instrument',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   textAlign: TextAlign.center,
                 ),
               ),
               SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _showAddGroupDialog,
+                onPressed: _showAddInstrumentDialog,
                 icon: Icon(Icons.add, size: 20),
-                label: Text('Add First Group'),
+                label: Text('Add First Instrument'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -1440,7 +1304,7 @@ class _GroupScreenState extends State<GroupScreen> {
     }
 
     if (_isSearching &&
-        _filteredGroups.isEmpty &&
+        _filteredInstruments.isEmpty &&
         _searchController.text.isNotEmpty) {
       return Center(
         child: Padding(
@@ -1472,7 +1336,7 @@ class _GroupScreenState extends State<GroupScreen> {
               ),
               SizedBox(height: 12),
               Text(
-                'No groups found for "${_searchController.text}"',
+                'No instruments found for "${_searchController.text}"',
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 textAlign: TextAlign.center,
               ),
@@ -1485,23 +1349,23 @@ class _GroupScreenState extends State<GroupScreen> {
     return RefreshIndicator(
       onRefresh: _syncFromServer,
       backgroundColor: Colors.white,
-      color: Colors.blue,
+      color: Colors.indigo,
       displacement: 40,
       edgeOffset: 20,
       strokeWidth: 2.5,
       child: ListView.builder(
         controller: _scrollController,
         padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
-        itemCount: displayGroups.length,
+        itemCount: displayInstruments.length,
         itemBuilder: (context, index) {
-          final group = displayGroups[index];
-          return _buildGroupItem(group, index);
+          final instrument = displayInstruments[index];
+          return _buildInstrumentItem(instrument, index);
         },
       ),
     );
   }
 
-  Widget _buildGroupItem(GroupEntity group, int index) {
+  Widget _buildInstrumentItem(InstrumentEntity instrument, int index) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child:
@@ -1509,17 +1373,17 @@ class _GroupScreenState extends State<GroupScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 elevation: 1,
-                shadowColor: Colors.blue.withOpacity(0.1),
+                shadowColor: Colors.indigo.withOpacity(0.1),
                 child: InkWell(
                   onTap: () {
-                    // Can be used to navigate to group details or edit
+                    // Can be used to navigate to instrument details or edit
                   },
                   onLongPress: () {
-                    _showDeleteConfirmationDialog(group);
+                    _showDeleteConfirmationDialog(instrument);
                   },
                   borderRadius: BorderRadius.circular(16),
-                  splashColor: Colors.blue.withOpacity(0.1),
-                  highlightColor: Colors.blue.withOpacity(0.05),
+                  splashColor: Colors.indigo.withOpacity(0.1),
+                  highlightColor: Colors.indigo.withOpacity(0.05),
                   child: Container(
                     padding: EdgeInsets.all(16),
                     child: Row(
@@ -1549,7 +1413,7 @@ class _GroupScreenState extends State<GroupScreen> {
                           ),
                           child: Center(
                             child: Icon(
-                              Icons.group,
+                              Icons.settings_applications,
                               color: Colors.white,
                               size: 24,
                             ),
@@ -1564,7 +1428,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      group.name,
+                                      instrument.machineName,
                                       style: TextStyle(
                                         fontSize: 17.sp,
                                         fontWeight: FontWeight.w600,
@@ -1573,29 +1437,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(group.status).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: _getStatusColor(group.status).withOpacity(0.3),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      group.status.toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: _getStatusColor(group.status),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  if (!group.isSynced)
+                                  if (!instrument.isSynced)
                                     Container(
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 8,
@@ -1630,10 +1472,10 @@ class _GroupScreenState extends State<GroupScreen> {
                                     ),
                                 ],
                               ),
-                              if (group.description != null && group.description!.isNotEmpty) ...[
+                              if (instrument.description.isNotEmpty) ...[
                                 SizedBox(height: 6),
                                 Text(
-                                  group.description!,
+                                  instrument.description,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -1642,48 +1484,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                              SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      'Type: ${group.type}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  if (group.groupCode != null && group.groupCode!.isNotEmpty)
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        'Code: ${group.groupCode}',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              if (group.createdAt != null) ...[
+                              if (instrument.createdAt != null) ...[
                                 SizedBox(height: 6),
                                 Row(
                                   children: [
@@ -1694,7 +1495,7 @@ class _GroupScreenState extends State<GroupScreen> {
                                     ),
                                     SizedBox(width: 6),
                                     Text(
-                                      'Created: ${_formatDate(group.createdAt!)}',
+                                      'Created: ${_formatDate(instrument.createdAt!)}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey.shade600,
@@ -1721,9 +1522,9 @@ class _GroupScreenState extends State<GroupScreen> {
                             ),
                           ),
                           onPressed: () {
-                            _showDeleteConfirmationDialog(group);
+                            _showDeleteConfirmationDialog(instrument);
                           },
-                          tooltip: 'Delete Group',
+                          tooltip: 'Delete Instrument',
                         ),
                       ],
                     ),
@@ -1739,29 +1540,18 @@ class _GroupScreenState extends State<GroupScreen> {
 
   Color _getColorFromIndex(int index) {
     final colors = [
-      Colors.blue.shade600,
       Colors.indigo.shade600,
       Colors.purple.shade600,
-      Colors.deepPurple.shade600,
+      Colors.blue.shade600,
       Colors.cyan.shade600,
       Colors.teal.shade600,
       Colors.green.shade600,
-      Colors.lightBlue.shade600,
+      Colors.deepPurple.shade600,
       Colors.blueGrey.shade600,
-      Colors.lightGreen.shade600,
+      Colors.deepOrange.shade600,
+      Colors.brown.shade600,
     ];
     return colors[index % colors.length];
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return Colors.green;
-      case 'inactive':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
   }
 
   String _formatDate(String dateString) {

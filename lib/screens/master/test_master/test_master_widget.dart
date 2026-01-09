@@ -7,9 +7,11 @@ import 'package:nanohospic/screens/get_pharmacy_list.dart';
 import 'package:nanohospic/screens/hsn_screen.dart';
 import 'package:nanohospic/screens/master/staff/staff_list_screen.dart';
 import 'package:nanohospic/screens/master/test_master/group_list_screen.dart';
+import 'package:nanohospic/screens/master/test_master/instrument_master_screen.dart';
 import 'package:nanohospic/screens/master/test_master/packages_list_screen.dart';
 import 'package:nanohospic/screens/master/test_master/test_bom_screen.dart';
 import 'package:nanohospic/screens/master/test_master/test_list_screeen.dart';
+import 'package:nanohospic/screens/master/test_master/test_method_master_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -116,7 +118,33 @@ class _TestMasterWidgetState extends State<TestMasterWidget> {
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                GroupListScreen(),
+                GroupScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+        break;
+      case "Instrument Master":
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                InstrumentScreen(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   const begin = Offset(1.0, 0.0);
@@ -143,6 +171,32 @@ class _TestMasterWidgetState extends State<TestMasterWidget> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 TestListScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+        break;
+      case "Test Method Master":
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                TestMethodScreen(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   const begin = Offset(1.0, 0.0);

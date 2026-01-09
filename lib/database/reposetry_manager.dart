@@ -30,7 +30,6 @@ class RepositoryManager {
   static BranchTypeRepository? _branchTypeRepository;
   static CollectionCenterRepository? _collectionCenterRepository;
   static ReferrerRepository? _referrerRepository;
-  static GroupRepo? _groupRepository;
   
   static void clearAll() {
     _userRepository = null;
@@ -47,7 +46,6 @@ class RepositoryManager {
     _branchTypeRepository = null;
     _collectionCenterRepository = null;
     _referrerRepository = null;
-    _groupRepository = null;
   }
   
   // User Repository
@@ -126,12 +124,6 @@ class RepositoryManager {
   static Future<CollectionCenterRepository> getCollectionCenterRepository(AppDatabase db) async {
     _collectionCenterRepository ??= CollectionCenterRepository(db.collectionCenterDao);
     return _collectionCenterRepository!;
-  }
-  
-  // Group Repository
-  static Future<GroupRepo> getGroupRepository(AppDatabase db) async {
-    _groupRepository ??= GroupRepo(db.groupDao);
-    return _groupRepository!;
   }
   
   // // Referrer Repository

@@ -106,6 +106,16 @@ class _$AppDatabase extends AppDatabase {
 
   TestBOMDao? _testBOMDaoInstance;
 
+  UnitDao? _unitDaoInstance;
+
+  ReferrerDao? _referrerDaoInstance;
+
+  DoctorCommissionDao? _doctorCommissionDaoInstance;
+
+  InstrumentDao? _instrumentDaoInstance;
+
+  TestMethodDao? _testMethodDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -154,13 +164,23 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `collection_centers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `center_code` TEXT NOT NULL, `center_name` TEXT NOT NULL, `country` TEXT NOT NULL, `state` TEXT NOT NULL, `city` TEXT NOT NULL, `address1` TEXT NOT NULL, `address2` TEXT NOT NULL, `location` TEXT NOT NULL, `postal_code` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `gst_number` TEXT NOT NULL, `pan_number` TEXT NOT NULL, `contact_person_name` TEXT NOT NULL, `phone_no` TEXT NOT NULL, `email` TEXT NOT NULL, `centre_status` TEXT NOT NULL, `branch_type_id` INTEGER, `lab_affiliation_company` TEXT NOT NULL, `operational_hours_from` TEXT NOT NULL, `operational_hours_to` TEXT NOT NULL, `collection_days` TEXT NOT NULL, `sample_pickup_timing_from` TEXT NOT NULL, `sample_pickup_timing_to` TEXT NOT NULL, `transport_mode` TEXT NOT NULL, `courier_agency_name` TEXT NOT NULL, `commission_type` TEXT NOT NULL, `commission_value` REAL NOT NULL, `account_holder_name` TEXT NOT NULL, `account_no` TEXT NOT NULL, `ifsc_code` TEXT NOT NULL, `agreement_file1_path` TEXT, `agreement_file2_path` TEXT, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `groups` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `description` TEXT, `code` TEXT, `type` TEXT, `status` TEXT, `tenant_id` TEXT, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
+            'CREATE TABLE IF NOT EXISTS `groups` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `description` TEXT, `group_code` TEXT, `type` TEXT NOT NULL, `status` TEXT NOT NULL, `tenant_id` TEXT, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `test` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `product_group` TEXT NOT NULL, `mrp` REAL NOT NULL, `sales_rate_a` REAL NOT NULL, `sales_rate_b` REAL NOT NULL, `hsn_sac` TEXT, `gst` INTEGER NOT NULL, `barcode` TEXT, `min_value` REAL NOT NULL, `max_value` REAL NOT NULL, `unit` TEXT NOT NULL, `created_at` TEXT NOT NULL, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `packages` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `gst` REAL NOT NULL, `rate` REAL NOT NULL, `tests_json` TEXT NOT NULL, `created_at` TEXT NOT NULL, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `test_boms` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `test_group` TEXT NOT NULL, `gender_type` TEXT NOT NULL, `description` TEXT, `rate` REAL NOT NULL, `gst` REAL NOT NULL, `turn_around_time` TEXT NOT NULL, `time_unit` TEXT NOT NULL, `is_active` INTEGER NOT NULL, `method` TEXT, `reference_range` TEXT, `clinical_significance` TEXT, `specimen_requirement` TEXT, `created_at` TEXT NOT NULL, `created_by` TEXT NOT NULL, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT, `parameters` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `units` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `referrers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `dob` TEXT NOT NULL, `marriage_anniversary` TEXT NOT NULL, `work_station` TEXT NOT NULL, `clinic_address` TEXT NOT NULL, `clinic_phone` TEXT NOT NULL, `hospital_name` TEXT NOT NULL, `hospital_address` TEXT NOT NULL, `hospital_phone` TEXT NOT NULL, `email` TEXT NOT NULL, `contact_no` TEXT NOT NULL, `specialization` TEXT NOT NULL, `remarks` TEXT NOT NULL, `registration_no` TEXT NOT NULL, `degree` TEXT NOT NULL, `tag_status` TEXT NOT NULL, `center_id` INTEGER, `center_name` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `doctor_commissions` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `doctor_name` TEXT NOT NULL, `initials` TEXT NOT NULL, `contact_no` TEXT NOT NULL, `email` TEXT NOT NULL, `work_station` TEXT NOT NULL, `referrer_id` INTEGER, `referrer_name` TEXT NOT NULL, `commission_for` TEXT NOT NULL, `commission_type` TEXT NOT NULL, `percentage` REAL NOT NULL, `value` REAL NOT NULL, `remarks` TEXT NOT NULL, `status` TEXT NOT NULL, `center_id` INTEGER NOT NULL, `center_name` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `instruments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `machine_name` TEXT NOT NULL, `description` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `test_methods` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `method_name` TEXT NOT NULL, `description` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -254,6 +274,32 @@ class _$AppDatabase extends AppDatabase {
   @override
   TestBOMDao get testBOMDao {
     return _testBOMDaoInstance ??= _$TestBOMDao(database, changeListener);
+  }
+
+  @override
+  UnitDao get unitDao {
+    return _unitDaoInstance ??= _$UnitDao(database, changeListener);
+  }
+
+  @override
+  ReferrerDao get referrerDao {
+    return _referrerDaoInstance ??= _$ReferrerDao(database, changeListener);
+  }
+
+  @override
+  DoctorCommissionDao get doctorCommissionDao {
+    return _doctorCommissionDaoInstance ??=
+        _$DoctorCommissionDao(database, changeListener);
+  }
+
+  @override
+  InstrumentDao get instrumentDao {
+    return _instrumentDaoInstance ??= _$InstrumentDao(database, changeListener);
+  }
+
+  @override
+  TestMethodDao get testMethodDao {
+    return _testMethodDaoInstance ??= _$TestMethodDao(database, changeListener);
   }
 }
 
@@ -4073,7 +4119,7 @@ class _$GroupDao extends GroupDao {
                   'server_id': item.serverId,
                   'name': item.name,
                   'description': item.description,
-                  'code': item.code,
+                  'group_code': item.groupCode,
                   'type': item.type,
                   'status': item.status,
                   'tenant_id': item.tenantId,
@@ -4081,12 +4127,10 @@ class _$GroupDao extends GroupDao {
                   'created_by': item.createdBy,
                   'last_modified': item.lastModified,
                   'last_modified_by': item.lastModifiedBy,
-                  'is_deleted': item.isDeleted,
+                  'is_deleted': item.isDeleted ? 1 : 0,
                   'deleted_by': item.deletedBy,
-                  'is_synced': item.isSynced,
-                  'sync_status': item.syncStatus,
-                  'sync_attempts': item.syncAttempts,
-                  'last_sync_error': item.lastSyncError
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
                 }),
         _groupEntityUpdateAdapter = UpdateAdapter(
             database,
@@ -4097,7 +4141,7 @@ class _$GroupDao extends GroupDao {
                   'server_id': item.serverId,
                   'name': item.name,
                   'description': item.description,
-                  'code': item.code,
+                  'group_code': item.groupCode,
                   'type': item.type,
                   'status': item.status,
                   'tenant_id': item.tenantId,
@@ -4105,12 +4149,32 @@ class _$GroupDao extends GroupDao {
                   'created_by': item.createdBy,
                   'last_modified': item.lastModified,
                   'last_modified_by': item.lastModifiedBy,
-                  'is_deleted': item.isDeleted,
+                  'is_deleted': item.isDeleted ? 1 : 0,
                   'deleted_by': item.deletedBy,
-                  'is_synced': item.isSynced,
-                  'sync_status': item.syncStatus,
-                  'sync_attempts': item.syncAttempts,
-                  'last_sync_error': item.lastSyncError
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _groupEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'groups',
+            ['id'],
+            (GroupEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'description': item.description,
+                  'group_code': item.groupCode,
+                  'type': item.type,
+                  'status': item.status,
+                  'tenant_id': item.tenantId,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -4123,30 +4187,7 @@ class _$GroupDao extends GroupDao {
 
   final UpdateAdapter<GroupEntity> _groupEntityUpdateAdapter;
 
-  @override
-  Future<List<GroupEntity>> getAllGroups() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM groups WHERE is_deleted = 0 ORDER BY name',
-        mapper: (Map<String, Object?> row) => GroupEntity(
-            id: row['id'] as int?,
-            serverId: row['server_id'] as int?,
-            name: row['name'] as String,
-            description: row['description'] as String?,
-            code: row['code'] as String?,
-            type: row['type'] as String?,
-            status: row['status'] as String?,
-            tenantId: row['tenant_id'] as String?,
-            createdAt: row['created_at'] as String?,
-            createdBy: row['created_by'] as String?,
-            lastModified: row['last_modified'] as String?,
-            lastModifiedBy: row['last_modified_by'] as String?,
-            isDeleted: row['is_deleted'] as int,
-            deletedBy: row['deleted_by'] as String?,
-            isSynced: row['is_synced'] as int,
-            syncStatus: row['sync_status'] as String?,
-            syncAttempts: row['sync_attempts'] as int,
-            lastSyncError: row['last_sync_error'] as String?));
-  }
+  final DeletionAdapter<GroupEntity> _groupEntityDeletionAdapter;
 
   @override
   Future<GroupEntity?> getGroupById(int id) async {
@@ -4156,20 +4197,18 @@ class _$GroupDao extends GroupDao {
             serverId: row['server_id'] as int?,
             name: row['name'] as String,
             description: row['description'] as String?,
-            code: row['code'] as String?,
-            type: row['type'] as String?,
-            status: row['status'] as String?,
+            groupCode: row['group_code'] as String?,
+            type: row['type'] as String,
+            status: row['status'] as String,
             tenantId: row['tenant_id'] as String?,
             createdAt: row['created_at'] as String?,
             createdBy: row['created_by'] as String?,
             lastModified: row['last_modified'] as String?,
             lastModifiedBy: row['last_modified_by'] as String?,
-            isDeleted: row['is_deleted'] as int,
+            isDeleted: (row['is_deleted'] as int) != 0,
             deletedBy: row['deleted_by'] as String?,
-            isSynced: row['is_synced'] as int,
-            syncStatus: row['sync_status'] as String?,
-            syncAttempts: row['sync_attempts'] as int,
-            lastSyncError: row['last_sync_error'] as String?),
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
         arguments: [id]);
   }
 
@@ -4181,168 +4220,135 @@ class _$GroupDao extends GroupDao {
             serverId: row['server_id'] as int?,
             name: row['name'] as String,
             description: row['description'] as String?,
-            code: row['code'] as String?,
-            type: row['type'] as String?,
-            status: row['status'] as String?,
+            groupCode: row['group_code'] as String?,
+            type: row['type'] as String,
+            status: row['status'] as String,
             tenantId: row['tenant_id'] as String?,
             createdAt: row['created_at'] as String?,
             createdBy: row['created_by'] as String?,
             lastModified: row['last_modified'] as String?,
             lastModifiedBy: row['last_modified_by'] as String?,
-            isDeleted: row['is_deleted'] as int,
+            isDeleted: (row['is_deleted'] as int) != 0,
             deletedBy: row['deleted_by'] as String?,
-            isSynced: row['is_synced'] as int,
-            syncStatus: row['sync_status'] as String?,
-            syncAttempts: row['sync_attempts'] as int,
-            lastSyncError: row['last_sync_error'] as String?),
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
         arguments: [serverId]);
   }
 
   @override
-  Future<void> deleteGroup(int id) async {
-    await _queryAdapter
-        .queryNoReturn('DELETE FROM groups WHERE id = ?1', arguments: [id]);
+  Future<List<GroupEntity>> getAllGroups() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM groups WHERE is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => GroupEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            groupCode: row['group_code'] as String?,
+            type: row['type'] as String,
+            status: row['status'] as String,
+            tenantId: row['tenant_id'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
   }
 
   @override
-  Future<int?> getTotalCount() async {
+  Future<List<GroupEntity>> searchGroups(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM groups WHERE (name LIKE ?1 OR description LIKE ?1) AND is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => GroupEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, description: row['description'] as String?, groupCode: row['group_code'] as String?, type: row['type'] as String, status: row['status'] as String, tenantId: row['tenant_id'] as String?, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [query]);
+  }
+
+  @override
+  Future<List<GroupEntity>> getPendingSyncGroups() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM groups WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\") ORDER BY id ASC',
+        mapper: (Map<String, Object?> row) => GroupEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            groupCode: row['group_code'] as String?,
+            type: row['type'] as String,
+            status: row['status'] as String,
+            tenantId: row['tenant_id'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<int?> getGroupsCount() async {
     return _queryAdapter.query(
         'SELECT COUNT(*) FROM groups WHERE is_deleted = 0',
         mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
-  Future<int?> getSyncedCount() async {
+  Future<int?> getSyncedGroupsCount() async {
     return _queryAdapter.query(
-        'SELECT COUNT(*) FROM groups WHERE is_synced = 1 AND is_deleted = 0',
+        'SELECT COUNT(*) FROM groups WHERE is_deleted = 0 AND is_synced = 1',
         mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
-  Future<int?> getPendingCount() async {
+  Future<int?> getPendingGroupsCount() async {
     return _queryAdapter.query(
-        'SELECT COUNT(*) FROM groups WHERE is_synced = 0 AND is_deleted = 0',
+        'SELECT COUNT(*) FROM groups WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\")',
         mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
-  Future<List<GroupEntity>> getPendingSync() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM groups WHERE is_synced = 0 AND is_deleted = 0',
-        mapper: (Map<String, Object?> row) => GroupEntity(
-            id: row['id'] as int?,
-            serverId: row['server_id'] as int?,
-            name: row['name'] as String,
-            description: row['description'] as String?,
-            code: row['code'] as String?,
-            type: row['type'] as String?,
-            status: row['status'] as String?,
-            tenantId: row['tenant_id'] as String?,
-            createdAt: row['created_at'] as String?,
-            createdBy: row['created_by'] as String?,
-            lastModified: row['last_modified'] as String?,
-            lastModifiedBy: row['last_modified_by'] as String?,
-            isDeleted: row['is_deleted'] as int,
-            deletedBy: row['deleted_by'] as String?,
-            isSynced: row['is_synced'] as int,
-            syncStatus: row['sync_status'] as String?,
-            syncAttempts: row['sync_attempts'] as int,
-            lastSyncError: row['last_sync_error'] as String?));
+  Future<int?> markAsDeleted(int id) async {
+    return _queryAdapter.query(
+        'UPDATE groups SET is_deleted = 1, deleted_by = \"system\", sync_status = \"pending\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
   }
 
   @override
-  Future<void> markAsSynced(int id) async {
-    await _queryAdapter.queryNoReturn(
+  Future<int?> markAsSynced(int id) async {
+    return _queryAdapter.query(
         'UPDATE groups SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [id]);
   }
 
   @override
-  Future<void> updateServerId(
-    int id,
-    int serverId,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE groups SET server_id = ?2 WHERE id = ?1',
-        arguments: [id, serverId]);
-  }
-
-  @override
-  Future<void> updateSyncError(
-    int id,
-    String error,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE groups SET sync_attempts = sync_attempts + 1, last_sync_error = ?2 WHERE id = ?1',
-        arguments: [id, error]);
-  }
-
-  @override
-  Future<List<GroupEntity>> searchGroups(String query) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM groups WHERE (name LIKE ?1 OR code LIKE ?1) AND is_deleted = 0',
-        mapper: (Map<String, Object?> row) => GroupEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, description: row['description'] as String?, code: row['code'] as String?, type: row['type'] as String?, status: row['status'] as String?, tenantId: row['tenant_id'] as String?, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: row['is_deleted'] as int, deletedBy: row['deleted_by'] as String?, isSynced: row['is_synced'] as int, syncStatus: row['sync_status'] as String?, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
-        arguments: [query]);
-  }
-
-  @override
-  Future<void> softDeleteGroup(
-    int id,
-    String deletedBy,
-    String timestamp,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE groups SET is_deleted = 1, deleted_by = ?2, last_modified = ?3 WHERE id = ?1',
-        arguments: [id, deletedBy, timestamp]);
-  }
-
-  @override
-  Future<List<GroupEntity>> getDeletedGroups() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM groups WHERE is_deleted = 1 ORDER BY name',
-        mapper: (Map<String, Object?> row) => GroupEntity(
-            id: row['id'] as int?,
-            serverId: row['server_id'] as int?,
-            name: row['name'] as String,
-            description: row['description'] as String?,
-            code: row['code'] as String?,
-            type: row['type'] as String?,
-            status: row['status'] as String?,
-            tenantId: row['tenant_id'] as String?,
-            createdAt: row['created_at'] as String?,
-            createdBy: row['created_by'] as String?,
-            lastModified: row['last_modified'] as String?,
-            lastModifiedBy: row['last_modified_by'] as String?,
-            isDeleted: row['is_deleted'] as int,
-            deletedBy: row['deleted_by'] as String?,
-            isSynced: row['is_synced'] as int,
-            syncStatus: row['sync_status'] as String?,
-            syncAttempts: row['sync_attempts'] as int,
-            lastSyncError: row['last_sync_error'] as String?));
-  }
-
-  @override
-  Future<void> restoreGroup(int id) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE groups SET is_deleted = 0, deleted_by = NULL WHERE id = ?1',
+  Future<int?> markAsFailed(int id) async {
+    return _queryAdapter.query(
+        'UPDATE groups SET sync_status = \"failed\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [id]);
   }
 
   @override
-  Future<void> insertGroup(GroupEntity group) async {
-    await _groupEntityInsertionAdapter.insert(
-        group, OnConflictStrategy.replace);
+  Future<int> insertGroup(GroupEntity group) {
+    return _groupEntityInsertionAdapter.insertAndReturnId(
+        group, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertGroups(List<GroupEntity> groups) async {
-    await _groupEntityInsertionAdapter.insertList(
-        groups, OnConflictStrategy.replace);
+  Future<int> updateGroup(GroupEntity group) {
+    return _groupEntityUpdateAdapter.updateAndReturnChangedRows(
+        group, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> updateGroup(GroupEntity group) async {
-    await _groupEntityUpdateAdapter.update(group, OnConflictStrategy.abort);
+  Future<int> deleteGroup(GroupEntity group) {
+    return _groupEntityDeletionAdapter.deleteAndReturnChangedRows(group);
   }
 }
 
@@ -5028,5 +5034,1421 @@ class _$TestBOMDao extends TestBOMDao {
   Future<int> updateTestBOM(TestBOM testBOM) {
     return _testBOMUpdateAdapter.updateAndReturnChangedRows(
         testBOM, OnConflictStrategy.abort);
+  }
+}
+
+class _$UnitDao extends UnitDao {
+  _$UnitDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _unitEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'units',
+            (UnitEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _unitEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'units',
+            ['id'],
+            (UnitEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _unitEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'units',
+            ['id'],
+            (UnitEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<UnitEntity> _unitEntityInsertionAdapter;
+
+  final UpdateAdapter<UnitEntity> _unitEntityUpdateAdapter;
+
+  final DeletionAdapter<UnitEntity> _unitEntityDeletionAdapter;
+
+  @override
+  Future<UnitEntity?> getUnitById(int id) async {
+    return _queryAdapter.query('SELECT * FROM units WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => UnitEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<UnitEntity?> getUnitByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM units WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => UnitEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<UnitEntity>> getAllUnits() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM units WHERE is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => UnitEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<List<UnitEntity>> searchUnits(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM units WHERE name LIKE ?1 AND is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => UnitEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [query]);
+  }
+
+  @override
+  Future<List<UnitEntity>> getPendingSyncUnits() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM units WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\") ORDER BY id ASC',
+        mapper: (Map<String, Object?> row) => UnitEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<int?> getUnitsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM units WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedUnitsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM units WHERE is_deleted = 0 AND is_synced = 1',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingUnitsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM units WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\")',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> markAsDeleted(int id) async {
+    return _queryAdapter.query(
+        'UPDATE units SET is_deleted = 1, deleted_by = \"system\", sync_status = \"pending\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsSynced(int id) async {
+    return _queryAdapter.query(
+        'UPDATE units SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsFailed(int id) async {
+    return _queryAdapter.query(
+        'UPDATE units SET sync_status = \"failed\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int> insertUnit(UnitEntity unit) {
+    return _unitEntityInsertionAdapter.insertAndReturnId(
+        unit, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateUnit(UnitEntity unit) {
+    return _unitEntityUpdateAdapter.updateAndReturnChangedRows(
+        unit, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> deleteUnit(UnitEntity unit) {
+    return _unitEntityDeletionAdapter.deleteAndReturnChangedRows(unit);
+  }
+}
+
+class _$ReferrerDao extends ReferrerDao {
+  _$ReferrerDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _referrerEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'referrers',
+            (ReferrerEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'dob': item.dob,
+                  'marriage_anniversary': item.marriageAnniversary,
+                  'work_station': item.workStation,
+                  'clinic_address': item.clinicAddress,
+                  'clinic_phone': item.clinicPhone,
+                  'hospital_name': item.hospitalName,
+                  'hospital_address': item.hospitalAddress,
+                  'hospital_phone': item.hospitalPhone,
+                  'email': item.email,
+                  'contact_no': item.contactNo,
+                  'specialization': item.specialization,
+                  'remarks': item.remarks,
+                  'registration_no': item.registrationNo,
+                  'degree': item.degree,
+                  'tag_status': item.tagStatus,
+                  'center_id': item.centerId,
+                  'center_name': item.centerName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                }),
+        _referrerEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'referrers',
+            ['id'],
+            (ReferrerEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'dob': item.dob,
+                  'marriage_anniversary': item.marriageAnniversary,
+                  'work_station': item.workStation,
+                  'clinic_address': item.clinicAddress,
+                  'clinic_phone': item.clinicPhone,
+                  'hospital_name': item.hospitalName,
+                  'hospital_address': item.hospitalAddress,
+                  'hospital_phone': item.hospitalPhone,
+                  'email': item.email,
+                  'contact_no': item.contactNo,
+                  'specialization': item.specialization,
+                  'remarks': item.remarks,
+                  'registration_no': item.registrationNo,
+                  'degree': item.degree,
+                  'tag_status': item.tagStatus,
+                  'center_id': item.centerId,
+                  'center_name': item.centerName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<ReferrerEntity> _referrerEntityInsertionAdapter;
+
+  final UpdateAdapter<ReferrerEntity> _referrerEntityUpdateAdapter;
+
+  @override
+  Future<List<ReferrerEntity>> getAllReferrers() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers WHERE is_deleted = 0 ORDER BY name',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<ReferrerEntity?> getReferrerById(int id) async {
+    return _queryAdapter.query('SELECT * FROM referrers WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<ReferrerEntity?> getReferrerByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM referrers WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<ReferrerEntity>> getPendingSync() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<int?> getTotalCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM referrers WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM referrers WHERE is_synced = 1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM referrers WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<List<ReferrerEntity>> searchReferrers(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers      WHERE is_deleted = 0      AND (       name LIKE ?1 OR       contact_no LIKE ?1 OR       email LIKE ?1 OR       specialization LIKE ?1 OR       registration_no LIKE ?1     )     ORDER BY name',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, dob: row['dob'] as String, marriageAnniversary: row['marriage_anniversary'] as String, workStation: row['work_station'] as String, clinicAddress: row['clinic_address'] as String, clinicPhone: row['clinic_phone'] as String, hospitalName: row['hospital_name'] as String, hospitalAddress: row['hospital_address'] as String, hospitalPhone: row['hospital_phone'] as String, email: row['email'] as String, contactNo: row['contact_no'] as String, specialization: row['specialization'] as String, remarks: row['remarks'] as String, registrationNo: row['registration_no'] as String, degree: row['degree'] as String, tagStatus: row['tag_status'] as String, centerId: row['center_id'] as int?, centerName: row['center_name'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: row['is_deleted'] as int, deletedBy: row['deleted_by'] as String?, isSynced: row['is_synced'] as int, syncStatus: row['sync_status'] as String, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [query]);
+  }
+
+  @override
+  Future<void> deleteReferrer(int id) async {
+    await _queryAdapter
+        .queryNoReturn('DELETE FROM referrers WHERE id = ?1', arguments: [id]);
+  }
+
+  @override
+  Future<void> softDeleteReferrer(
+    int id,
+    String deletedBy,
+    String lastModified,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE referrers      SET is_deleted = 1,          deleted_by = ?2,         last_modified = ?3,         is_synced = 0,         sync_status = \'pending\'     WHERE id = ?1',
+        arguments: [id, deletedBy, lastModified]);
+  }
+
+  @override
+  Future<void> markAsSynced(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE referrers SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> updateServerId(
+    int id,
+    int serverId,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE referrers SET server_id = ?2 WHERE id = ?1',
+        arguments: [id, serverId]);
+  }
+
+  @override
+  Future<void> updateSyncError(
+    int id,
+    String error,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE referrers SET last_sync_error = ?2 WHERE id = ?1',
+        arguments: [id, error]);
+  }
+
+  @override
+  Future<void> incrementSyncAttempts(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE referrers SET sync_attempts = sync_attempts + 1 WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<List<String>> getDistinctSpecializations() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT specialization FROM referrers WHERE is_deleted = 0 AND specialization IS NOT NULL AND specialization != \"\"',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<String>> getDistinctDegrees() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT degree FROM referrers WHERE is_deleted = 0 AND degree IS NOT NULL AND degree != \"\"',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<String>> getDistinctTagStatus() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT tag_status FROM referrers WHERE is_deleted = 0 AND tag_status IS NOT NULL AND tag_status != \"\"',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<String>> getDistinctCenters() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT center_name FROM referrers WHERE is_deleted = 0 AND center_name IS NOT NULL AND center_name != \"\"',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<ReferrerEntity>> getTaggedReferrers() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers WHERE is_deleted = 0 AND tag_status = \"Tagged\" ORDER BY name',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<List<ReferrerEntity>> getUntaggedReferrers() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers WHERE is_deleted = 0 AND tag_status = \"Untagged\" ORDER BY name',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            dob: row['dob'] as String,
+            marriageAnniversary: row['marriage_anniversary'] as String,
+            workStation: row['work_station'] as String,
+            clinicAddress: row['clinic_address'] as String,
+            clinicPhone: row['clinic_phone'] as String,
+            hospitalName: row['hospital_name'] as String,
+            hospitalAddress: row['hospital_address'] as String,
+            hospitalPhone: row['hospital_phone'] as String,
+            email: row['email'] as String,
+            contactNo: row['contact_no'] as String,
+            specialization: row['specialization'] as String,
+            remarks: row['remarks'] as String,
+            registrationNo: row['registration_no'] as String,
+            degree: row['degree'] as String,
+            tagStatus: row['tag_status'] as String,
+            centerId: row['center_id'] as int?,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<List<ReferrerEntity>> getReferrersByCenter(String centerName) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM referrers WHERE is_deleted = 0 AND center_name = ?1 ORDER BY name',
+        mapper: (Map<String, Object?> row) => ReferrerEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, dob: row['dob'] as String, marriageAnniversary: row['marriage_anniversary'] as String, workStation: row['work_station'] as String, clinicAddress: row['clinic_address'] as String, clinicPhone: row['clinic_phone'] as String, hospitalName: row['hospital_name'] as String, hospitalAddress: row['hospital_address'] as String, hospitalPhone: row['hospital_phone'] as String, email: row['email'] as String, contactNo: row['contact_no'] as String, specialization: row['specialization'] as String, remarks: row['remarks'] as String, registrationNo: row['registration_no'] as String, degree: row['degree'] as String, tagStatus: row['tag_status'] as String, centerId: row['center_id'] as int?, centerName: row['center_name'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: row['is_deleted'] as int, deletedBy: row['deleted_by'] as String?, isSynced: row['is_synced'] as int, syncStatus: row['sync_status'] as String, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [centerName]);
+  }
+
+  @override
+  Future<List<int>> insertReferrerList(List<ReferrerEntity> referrers) {
+    return _referrerEntityInsertionAdapter.insertListAndReturnIds(
+        referrers, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<int> insertReferrer(ReferrerEntity referrer) {
+    return _referrerEntityInsertionAdapter.insertAndReturnId(
+        referrer, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateReferrer(ReferrerEntity referrer) async {
+    await _referrerEntityUpdateAdapter.update(
+        referrer, OnConflictStrategy.abort);
+  }
+}
+
+class _$DoctorCommissionDao extends DoctorCommissionDao {
+  _$DoctorCommissionDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _doctorCommissionEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'doctor_commissions',
+            (DoctorCommissionEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'doctor_name': item.doctorName,
+                  'initials': item.initials,
+                  'contact_no': item.contactNo,
+                  'email': item.email,
+                  'work_station': item.workStation,
+                  'referrer_id': item.referrerId,
+                  'referrer_name': item.referrerName,
+                  'commission_for': item.commissionFor,
+                  'commission_type': item.commissionType,
+                  'percentage': item.percentage,
+                  'value': item.value,
+                  'remarks': item.remarks,
+                  'status': item.status,
+                  'center_id': item.centerId,
+                  'center_name': item.centerName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _doctorCommissionEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'doctor_commissions',
+            ['id'],
+            (DoctorCommissionEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'doctor_name': item.doctorName,
+                  'initials': item.initials,
+                  'contact_no': item.contactNo,
+                  'email': item.email,
+                  'work_station': item.workStation,
+                  'referrer_id': item.referrerId,
+                  'referrer_name': item.referrerName,
+                  'commission_for': item.commissionFor,
+                  'commission_type': item.commissionType,
+                  'percentage': item.percentage,
+                  'value': item.value,
+                  'remarks': item.remarks,
+                  'status': item.status,
+                  'center_id': item.centerId,
+                  'center_name': item.centerName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<DoctorCommissionEntity>
+      _doctorCommissionEntityInsertionAdapter;
+
+  final UpdateAdapter<DoctorCommissionEntity>
+      _doctorCommissionEntityUpdateAdapter;
+
+  @override
+  Future<List<DoctorCommissionEntity>> getAllCommissions() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM doctor_commissions WHERE is_deleted = 0 ORDER BY doctor_name ASC',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            doctorName: row['doctor_name'] as String,
+            initials: row['initials'] as String,
+            contactNo: row['contact_no'] as String,
+            email: row['email'] as String,
+            workStation: row['work_station'] as String,
+            referrerId: row['referrer_id'] as int?,
+            referrerName: row['referrer_name'] as String,
+            commissionFor: row['commission_for'] as String,
+            commissionType: row['commission_type'] as String,
+            percentage: row['percentage'] as double,
+            value: row['value'] as double,
+            remarks: row['remarks'] as String,
+            status: row['status'] as String,
+            centerId: row['center_id'] as int,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<DoctorCommissionEntity?> getCommissionById(int id) async {
+    return _queryAdapter.query('SELECT * FROM doctor_commissions WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            doctorName: row['doctor_name'] as String,
+            initials: row['initials'] as String,
+            contactNo: row['contact_no'] as String,
+            email: row['email'] as String,
+            workStation: row['work_station'] as String,
+            referrerId: row['referrer_id'] as int?,
+            referrerName: row['referrer_name'] as String,
+            commissionFor: row['commission_for'] as String,
+            commissionType: row['commission_type'] as String,
+            percentage: row['percentage'] as double,
+            value: row['value'] as double,
+            remarks: row['remarks'] as String,
+            status: row['status'] as String,
+            centerId: row['center_id'] as int,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<DoctorCommissionEntity?> getCommissionByServerId(int serverId) async {
+    return _queryAdapter.query(
+        'SELECT * FROM doctor_commissions WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            doctorName: row['doctor_name'] as String,
+            initials: row['initials'] as String,
+            contactNo: row['contact_no'] as String,
+            email: row['email'] as String,
+            workStation: row['work_station'] as String,
+            referrerId: row['referrer_id'] as int?,
+            referrerName: row['referrer_name'] as String,
+            commissionFor: row['commission_for'] as String,
+            commissionType: row['commission_type'] as String,
+            percentage: row['percentage'] as double,
+            value: row['value'] as double,
+            remarks: row['remarks'] as String,
+            status: row['status'] as String,
+            centerId: row['center_id'] as int,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<DoctorCommissionEntity>> getPendingSync() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM doctor_commissions WHERE is_synced = 0 OR sync_status = \'failed\'',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            doctorName: row['doctor_name'] as String,
+            initials: row['initials'] as String,
+            contactNo: row['contact_no'] as String,
+            email: row['email'] as String,
+            workStation: row['work_station'] as String,
+            referrerId: row['referrer_id'] as int?,
+            referrerName: row['referrer_name'] as String,
+            commissionFor: row['commission_for'] as String,
+            commissionType: row['commission_type'] as String,
+            percentage: row['percentage'] as double,
+            value: row['value'] as double,
+            remarks: row['remarks'] as String,
+            status: row['status'] as String,
+            centerId: row['center_id'] as int,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<List<DoctorCommissionEntity>> getCommissionsByReferrer(
+      int referrerId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM doctor_commissions WHERE referrer_id = ?1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, doctorName: row['doctor_name'] as String, initials: row['initials'] as String, contactNo: row['contact_no'] as String, email: row['email'] as String, workStation: row['work_station'] as String, referrerId: row['referrer_id'] as int?, referrerName: row['referrer_name'] as String, commissionFor: row['commission_for'] as String, commissionType: row['commission_type'] as String, percentage: row['percentage'] as double, value: row['value'] as double, remarks: row['remarks'] as String, status: row['status'] as String, centerId: row['center_id'] as int, centerName: row['center_name'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [referrerId]);
+  }
+
+  @override
+  Future<List<DoctorCommissionEntity>> getCommissionsByStatus(
+      String status) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM doctor_commissions WHERE status = ?1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            doctorName: row['doctor_name'] as String,
+            initials: row['initials'] as String,
+            contactNo: row['contact_no'] as String,
+            email: row['email'] as String,
+            workStation: row['work_station'] as String,
+            referrerId: row['referrer_id'] as int?,
+            referrerName: row['referrer_name'] as String,
+            commissionFor: row['commission_for'] as String,
+            commissionType: row['commission_type'] as String,
+            percentage: row['percentage'] as double,
+            value: row['value'] as double,
+            remarks: row['remarks'] as String,
+            status: row['status'] as String,
+            centerId: row['center_id'] as int,
+            centerName: row['center_name'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [status]);
+  }
+
+  @override
+  Future<List<DoctorCommissionEntity>> getCommissionsByType(
+      String commissionFor) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM doctor_commissions WHERE commission_for = ?1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DoctorCommissionEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, doctorName: row['doctor_name'] as String, initials: row['initials'] as String, contactNo: row['contact_no'] as String, email: row['email'] as String, workStation: row['work_station'] as String, referrerId: row['referrer_id'] as int?, referrerName: row['referrer_name'] as String, commissionFor: row['commission_for'] as String, commissionType: row['commission_type'] as String, percentage: row['percentage'] as double, value: row['value'] as double, remarks: row['remarks'] as String, status: row['status'] as String, centerId: row['center_id'] as int, centerName: row['center_name'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [commissionFor]);
+  }
+
+  @override
+  Future<void> softDeleteCommission(
+    int id,
+    String deletedBy,
+    String timestamp,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE doctor_commissions SET is_deleted = 1, deleted_by = ?2, last_modified = ?3, is_synced = 0, sync_status = \'pending\' WHERE id = ?1',
+        arguments: [id, deletedBy, timestamp]);
+  }
+
+  @override
+  Future<void> markAsSynced(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE doctor_commissions SET is_synced = 1, sync_status = \'synced\' WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> markAsFailed(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE doctor_commissions SET sync_status = \'failed\' WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> updateServerId(
+    int id,
+    int serverId,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE doctor_commissions SET server_id = ?2 WHERE id = ?1',
+        arguments: [id, serverId]);
+  }
+
+  @override
+  Future<int?> getActiveCommissionCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM doctor_commissions WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingSyncCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM doctor_commissions WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int> insertCommission(DoctorCommissionEntity commission) {
+    return _doctorCommissionEntityInsertionAdapter.insertAndReturnId(
+        commission, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateCommission(DoctorCommissionEntity commission) {
+    return _doctorCommissionEntityUpdateAdapter.updateAndReturnChangedRows(
+        commission, OnConflictStrategy.abort);
+  }
+}
+
+class _$InstrumentDao extends InstrumentDao {
+  _$InstrumentDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _instrumentEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'instruments',
+            (InstrumentEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'machine_name': item.machineName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _instrumentEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'instruments',
+            ['id'],
+            (InstrumentEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'machine_name': item.machineName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _instrumentEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'instruments',
+            ['id'],
+            (InstrumentEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'machine_name': item.machineName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<InstrumentEntity> _instrumentEntityInsertionAdapter;
+
+  final UpdateAdapter<InstrumentEntity> _instrumentEntityUpdateAdapter;
+
+  final DeletionAdapter<InstrumentEntity> _instrumentEntityDeletionAdapter;
+
+  @override
+  Future<InstrumentEntity?> getInstrumentById(int id) async {
+    return _queryAdapter.query('SELECT * FROM instruments WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => InstrumentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            machineName: row['machine_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<InstrumentEntity?> getInstrumentByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM instruments WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => InstrumentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            machineName: row['machine_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<InstrumentEntity>> getAllInstruments() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM instruments WHERE is_deleted = 0 ORDER BY machine_name ASC',
+        mapper: (Map<String, Object?> row) => InstrumentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            machineName: row['machine_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<List<InstrumentEntity>> searchInstruments(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM instruments WHERE (machine_name LIKE ?1 OR description LIKE ?1) AND is_deleted = 0 ORDER BY machine_name ASC',
+        mapper: (Map<String, Object?> row) => InstrumentEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, machineName: row['machine_name'] as String, description: row['description'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [query]);
+  }
+
+  @override
+  Future<List<InstrumentEntity>> getPendingSyncInstruments() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM instruments WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\") ORDER BY id ASC',
+        mapper: (Map<String, Object?> row) => InstrumentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            machineName: row['machine_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<int?> getInstrumentsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM instruments WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedInstrumentsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM instruments WHERE is_deleted = 0 AND is_synced = 1',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingInstrumentsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM instruments WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\")',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> markAsDeleted(int id) async {
+    return _queryAdapter.query(
+        'UPDATE instruments SET is_deleted = 1, deleted_by = \"system\", sync_status = \"pending\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsSynced(int id) async {
+    return _queryAdapter.query(
+        'UPDATE instruments SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsFailed(int id) async {
+    return _queryAdapter.query(
+        'UPDATE instruments SET sync_status = \"failed\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int> insertInstrument(InstrumentEntity instrument) {
+    return _instrumentEntityInsertionAdapter.insertAndReturnId(
+        instrument, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateInstrument(InstrumentEntity instrument) {
+    return _instrumentEntityUpdateAdapter.updateAndReturnChangedRows(
+        instrument, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> deleteInstrument(InstrumentEntity instrument) {
+    return _instrumentEntityDeletionAdapter
+        .deleteAndReturnChangedRows(instrument);
+  }
+}
+
+class _$TestMethodDao extends TestMethodDao {
+  _$TestMethodDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _testMethodEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'test_methods',
+            (TestMethodEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'method_name': item.methodName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _testMethodEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'test_methods',
+            ['id'],
+            (TestMethodEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'method_name': item.methodName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                }),
+        _testMethodEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'test_methods',
+            ['id'],
+            (TestMethodEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'method_name': item.methodName,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<TestMethodEntity> _testMethodEntityInsertionAdapter;
+
+  final UpdateAdapter<TestMethodEntity> _testMethodEntityUpdateAdapter;
+
+  final DeletionAdapter<TestMethodEntity> _testMethodEntityDeletionAdapter;
+
+  @override
+  Future<TestMethodEntity?> getTestMethodById(int id) async {
+    return _queryAdapter.query('SELECT * FROM test_methods WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => TestMethodEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            methodName: row['method_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<TestMethodEntity?> getTestMethodByServerId(int serverId) async {
+    return _queryAdapter.query(
+        'SELECT * FROM test_methods WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => TestMethodEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            methodName: row['method_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<TestMethodEntity>> getAllTestMethods() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM test_methods WHERE is_deleted = 0 ORDER BY method_name ASC',
+        mapper: (Map<String, Object?> row) => TestMethodEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            methodName: row['method_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<List<TestMethodEntity>> searchTestMethods(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM test_methods WHERE (method_name LIKE ?1 OR description LIKE ?1) AND is_deleted = 0 ORDER BY method_name ASC',
+        mapper: (Map<String, Object?> row) => TestMethodEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, methodName: row['method_name'] as String, description: row['description'] as String, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String),
+        arguments: [query]);
+  }
+
+  @override
+  Future<List<TestMethodEntity>> getPendingSyncTestMethods() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM test_methods WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\") ORDER BY id ASC',
+        mapper: (Map<String, Object?> row) => TestMethodEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            methodName: row['method_name'] as String,
+            description: row['description'] as String,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String));
+  }
+
+  @override
+  Future<int?> getTestMethodsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM test_methods WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedTestMethodsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM test_methods WHERE is_deleted = 0 AND is_synced = 1',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingTestMethodsCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM test_methods WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = \"pending\" OR sync_status = \"failed\")',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> markAsDeleted(int id) async {
+    return _queryAdapter.query(
+        'UPDATE test_methods SET is_deleted = 1, deleted_by = \"system\", sync_status = \"pending\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsSynced(int id) async {
+    return _queryAdapter.query(
+        'UPDATE test_methods SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int?> markAsFailed(int id) async {
+    return _queryAdapter.query(
+        'UPDATE test_methods SET sync_status = \"failed\" WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [id]);
+  }
+
+  @override
+  Future<int> insertTestMethod(TestMethodEntity testMethod) {
+    return _testMethodEntityInsertionAdapter.insertAndReturnId(
+        testMethod, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateTestMethod(TestMethodEntity testMethod) {
+    return _testMethodEntityUpdateAdapter.updateAndReturnChangedRows(
+        testMethod, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> deleteTestMethod(TestMethodEntity testMethod) {
+    return _testMethodEntityDeletionAdapter
+        .deleteAndReturnChangedRows(testMethod);
   }
 }

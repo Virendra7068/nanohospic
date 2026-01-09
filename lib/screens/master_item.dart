@@ -10,6 +10,7 @@ import 'package:nanohospic/screens/master/branch_type_list_screen.dart';
 import 'package:nanohospic/screens/master/client_list_screen.dart';
 import 'package:nanohospic/screens/master/collection_center_entry/collection_center_entry_list_screen.dart';
 import 'package:nanohospic/screens/master/commission_master/commission_master_widget.dart';
+import 'package:nanohospic/screens/master/item_master/unit_screen.dart';
 import 'package:nanohospic/screens/master/items/items_list_screen.dart';
 import 'package:nanohospic/screens/master/patient_identity.dart';
 import 'package:nanohospic/screens/master/sample_type_screen.dart';
@@ -845,6 +846,40 @@ class ItemMasterScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ItemsListScreen(),
+                              ),
+                            );
+                            break;
+                          case "Unit":
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        UnitScreen(),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      const begin = Offset(1.0, 0.0);
+                                      const end = Offset.zero;
+                                      const curve = Curves.easeInOut;
+
+                                      var tween = Tween(
+                                        begin: begin,
+                                        end: end,
+                                      ).chain(CurveTween(curve: curve));
+
+                                      return SlideTransition(
+                                        position: animation.drive(tween),
+                                        child: child,
+                                      );
+                                    },
+                                transitionDuration: const Duration(
+                                  milliseconds: 300,
+                                ),
                               ),
                             );
                             break;

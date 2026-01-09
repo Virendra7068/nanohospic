@@ -1008,13 +1008,10 @@ class _TestListScreenState extends State<TestListScreen> {
   List<TestModel> _tests = [];
   List<TestModel> _filteredTests = [];
   bool _isLoading = false;
-  bool _isSyncing = false;
   String? _error;
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   late TestRepository _testRepository;
-  late GroupRepo _groupRepository;
-  late HsnRepository _hsnRepository;
   Timer? _syncTimer;
   int _totalRecords = 0;
   int _syncedRecords = 0;
@@ -1042,8 +1039,6 @@ class _TestListScreenState extends State<TestListScreen> {
       // await DatabaseProvider.ensureTestTableExists();
       await DatabaseProvider.database;
       _testRepository = TestRepository();
-      _groupRepository = await DatabaseProvider.groupRepository;
-      _hsnRepository = await DatabaseProvider.hsnRepository;
       await _loadLocalTests();
       await _loadSyncStats();
     } catch (e) {
@@ -2190,7 +2185,7 @@ class AddTestScreen extends StatefulWidget {
 class _AddTestScreenState extends State<AddTestScreen> {
   final _formKey = GlobalKey<FormState>();
   late TestRepository _testRepository;
-  late GroupRepo _groupRepository;
+  late GroupRepository _groupRepository;
   late HsnRepository _hsnRepository;
 
   // Form controllers

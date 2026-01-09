@@ -1,25 +1,17 @@
-// lib/database/entity/group_entity.dart
 import 'package:floor/floor.dart';
 
-@Entity(tableName: 'groups')
-class GroupEntity {
+@Entity(tableName: 'instruments')
+class InstrumentEntity {
   @PrimaryKey(autoGenerate: true)
   int? id;
 
   @ColumnInfo(name: 'server_id')
   int? serverId;
   
-  String name;
-  String? description;
+  @ColumnInfo(name: 'machine_name')
+  String machineName;
   
-  @ColumnInfo(name: 'group_code')
-  String? groupCode;
-  
-  String type;
-  String status;
-
-  @ColumnInfo(name: 'tenant_id')
-  String? tenantId;
+  String description;
 
   @ColumnInfo(name: 'created_at')
   String? createdAt;
@@ -45,15 +37,11 @@ class GroupEntity {
   @ColumnInfo(name: 'sync_status')
   String syncStatus; // 'pending', 'synced', 'failed'
 
-  GroupEntity({
+  InstrumentEntity({
     this.id,
     this.serverId,
-    required this.name,
-    this.description,
-    this.groupCode,
-    this.type = 'general',
-    this.status = 'active',
-    this.tenantId,
+    required this.machineName,
+    required this.description,
     this.createdAt,
     this.createdBy,
     this.lastModified,
@@ -68,12 +56,8 @@ class GroupEntity {
     return {
       'id': id,
       'server_id': serverId,
-      'name': name,
+      'machine_name': machineName,
       'description': description,
-      'group_code': groupCode,
-      'type': type,
-      'status': status,
-      'tenant_id': tenantId,
       'created_at': createdAt,
       'created_by': createdBy,
       'last_modified': lastModified,
@@ -85,16 +69,12 @@ class GroupEntity {
     };
   }
 
-  factory GroupEntity.fromMap(Map<String, dynamic> map) {
-    return GroupEntity(
+  factory InstrumentEntity.fromMap(Map<String, dynamic> map) {
+    return InstrumentEntity(
       id: map['id'] as int?,
       serverId: map['server_id'] as int?,
-      name: map['name'] as String,
-      description: map['description'] as String?,
-      groupCode: map['group_code'] as String?,
-      type: map['type'] as String? ?? 'general',
-      status: map['status'] as String? ?? 'active',
-      tenantId: map['tenant_id'] as String?,
+      machineName: map['machine_name'] as String,
+      description: map['description'] as String,
       createdAt: map['created_at'] as String?,
       createdBy: map['created_by'] as String?,
       lastModified: map['last_modified'] as String?,
@@ -106,15 +86,11 @@ class GroupEntity {
     );
   }
 
-  factory GroupEntity.fromServerMap(Map<String, dynamic> map) {
-    return GroupEntity(
+  factory InstrumentEntity.fromServerMap(Map<String, dynamic> map) {
+    return InstrumentEntity(
       serverId: map['id'] as int?,
-      name: map['name'] as String? ?? '',
-      description: map['description'] as String?,
-      groupCode: map['code'] as String?,
-      type: map['type'] as String? ?? 'general',
-      status: map['status'] as String? ?? 'active',
-      tenantId: map['tenantId'] as String?,
+      machineName: map['machineName'] as String? ?? '',
+      description: map['description'] as String? ?? '',
       createdAt: map['created'] as String?,
       createdBy: map['createdBy'] as String?,
       lastModified: map['lastModified'] as String?,
