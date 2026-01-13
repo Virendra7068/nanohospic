@@ -248,32 +248,32 @@ class _ItemsListScreenState extends State<ItemsListScreen> {
         //   ],
         // ],
       ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateNewItemScreeen(),
-                    ),
-                  );
-                },
-                backgroundColor: Colors.teal.shade700,
-                foregroundColor: Colors.white,
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(Icons.add, size: 28),
-              )
-              .animate()
-              .scale(duration: 600.ms, curve: Curves.elasticOut)
-              .then(delay: 200.ms)
-              .shake(hz: 3, curve: Curves.easeInOut),
-        ],
-      ),
+      // floatingActionButton: Row(
+      //   mainAxisAlignment: MainAxisAlignment.end,
+      //   children: [
+      //     // FloatingActionButton(
+      //     //       onPressed: () {
+      //     //         Navigator.push(
+      //     //           context,
+      //     //           MaterialPageRoute(
+      //     //             builder: (context) => CreateNewItemScreen(),
+      //     //           ),
+      //     //         );
+      //     //       },
+      //     //       backgroundColor: Colors.teal.shade700,
+      //     //       foregroundColor: Colors.white,
+      //     //       elevation: 6,
+      //     //       shape: RoundedRectangleBorder(
+      //     //         borderRadius: BorderRadius.circular(16),
+      //     //       ),
+      //     //       child: Icon(Icons.add, size: 28),
+      //     //     )
+      //     //     .animate()
+      //     //     .scale(duration: 600.ms, curve: Curves.elasticOut)
+      //     //     .then(delay: 200.ms)
+      //     //     .shake(hz: 3, curve: Curves.easeInOut),
+      //   ],
+      // ),
       body: Column(
         children: [
           // Search Bar
@@ -372,11 +372,11 @@ class _ItemsListScreenState extends State<ItemsListScreen> {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: _fetchItems,
-            child: Text('Retry'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.teal,
               foregroundColor: Colors.white,
             ),
+            child: Text('Retry'),
           ),
         ],
       ),
@@ -415,11 +415,9 @@ class _ItemsListScreenState extends State<ItemsListScreen> {
             if (index == _filteredItems.length) {
               return _buildLoadMoreIndicator();
             }
-
             final item = _filteredItems[index];
             final isSelected = _selectedItemIds.contains(item.id);
             final selectedItem = _selectedItemsMap[item.id];
-
             return AnimationConfiguration.staggeredList(
               position: index,
               duration: Duration(milliseconds: 500),

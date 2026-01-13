@@ -26,11 +26,6 @@ class CountryRepository {
   }
 
   Future<int> insertCountry(CountryEntity country) async {
-    // Set sync status to pending for new entries
-    country.isSynced = false;
-    country.syncStatus = 'pending';
-    country.createdAt = DateTime.now().toIso8601String();
-    
     return await _countryDao.insertCountry(country);
   }
 
@@ -39,7 +34,12 @@ class CountryRepository {
     country.lastModified = DateTime.now().toIso8601String();
     country.isSynced = false;
     country.syncStatus = 'pending';
-    
+
+    return await _countryDao.updateCountry(country);
+  }
+
+  // FIXED: Method to update country without resetting sync status (for sync operations)
+  Future<int> updateSyncedCountry(CountryEntity country) async {
     return await _countryDao.updateCountry(country);
   }
 
@@ -98,25 +98,50 @@ class CountryRepository {
 
   // FIXED METHOD: Sync from server with proper entity handling
   Future<void> syncFromServer(List<dynamic> serverData) async {
+    // Deduplicate server data by name, keeping the first occurrence
+    final uniqueServerData = <String, Map<String, dynamic>>{};
+
     for (final dynamic item in serverData) {
-      try {
-        // Convert dynamic to Map<String, dynamic>
-        Map<String, dynamic> countryData;
-        
-        if (item is Map<String, dynamic>) {
-          countryData = item;
-        } else if (item is Map) {
-          countryData = Map<String, dynamic>.from(item);
-        } else {
-          continue; // Skip invalid data
+      if (item == null) continue;
+
+      Map<String, dynamic>? countryData;
+      if (item is Map<String, dynamic>) {
+        countryData = item;
+      } else if (item is Map) {
+        countryData = Map<String, dynamic>.from(item);
+      }
+
+      if (countryData != null) {
+        final name = countryData['name']?.toString().trim();
+        if (name != null && name.isNotEmpty) {
+          // Normalizing key to lowercase for deduplication
+          final key = name.toLowerCase();
+          if (!uniqueServerData.containsKey(key)) {
+            uniqueServerData[key] = countryData;
+          }
         }
-        
+      }
+    }
+
+    // Process unique records
+    for (final countryData in uniqueServerData.values) {
+      try {
         final serverId = _parseInt(countryData['id']);
         if (serverId == 0) continue; // Skip invalid IDs
-        
+
         final existing = await getCountryByServerId(serverId);
-        
+
+        // If not found by server ID, check by name to avoid duplicates
+        // This handles cases where user added locally (pending) and server also has it
+        CountryEntity? existingByName;
         if (existing == null) {
+          final name = countryData['name']?.toString() ?? '';
+          if (name.isNotEmpty) {
+            existingByName = await findCountryByName(name);
+          }
+        }
+
+        if (existing == null && existingByName == null) {
           // Insert new country from server
           final country = CountryEntity(
             serverId: serverId,
@@ -131,20 +156,30 @@ class CountryRepository {
           await insertCountry(country);
         } else {
           // Update existing country with server data
+          // Use either the one found by ID or by Name
+          final target = existing ?? existingByName!;
+
           final updatedCountry = CountryEntity(
-            id: existing.id,
-            serverId: existing.serverId,
-            name: countryData['name']?.toString() ?? existing.name,
-            createdAt: existing.createdAt,
-            createdBy: existing.createdBy,
-            lastModified: countryData['lastModified']?.toString() ?? existing.lastModified,
-            lastModifiedBy: countryData['lastModifiedBy']?.toString() ?? existing.lastModifiedBy,
-            isDeleted: existing.isDeleted,
-            deletedBy: existing.deletedBy,
-            isSynced: true,
+            id: target.id,
+            serverId: serverId, // Ensure serverId is set
+            name: countryData['name']?.toString() ?? target.name,
+            createdAt: target.createdAt,
+            createdBy: target.createdBy,
+            // Use server's last modified, or fall back to current if missing
+            lastModified:
+                countryData['lastModified']?.toString() ?? target.lastModified,
+            lastModifiedBy:
+                countryData['lastModifiedBy']?.toString() ??
+                target.lastModifiedBy,
+            isDeleted: target.isDeleted,
+            deletedBy: target.deletedBy,
+            isSynced:
+                true, // ERROR WAS HERE: Previously called updateCountry which set this to false
             syncStatus: 'synced',
           );
-          await updateCountry(updatedCountry);
+
+          // CRITICAL FIX: Direct DAO call to avoid 'updateCountry' wrapper which resets sync status
+          await _countryDao.updateCountry(updatedCountry);
         }
       } catch (e) {
         print('Error syncing country: $e');
@@ -162,10 +197,12 @@ class CountryRepository {
   }
 
   // FIXED METHOD: findCountryByName with proper type handling
+  // FIXED METHOD: findCountryByName with proper type handling and normalization
   Future<CountryEntity?> findCountryByName(String name) async {
+    final searchName = name.trim().toLowerCase();
     final countries = await getAllCountries();
     for (final country in countries) {
-      if (country.name.toLowerCase() == name.toLowerCase()) {
+      if (country.name.trim().toLowerCase() == searchName) {
         return country;
       }
     }

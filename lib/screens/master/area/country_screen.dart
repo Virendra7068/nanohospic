@@ -12,6 +12,7 @@ import 'package:nanohospic/screens/master/area/state_screen.dart';
 import 'dart:convert';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:nanohospic/model/country_model.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class CountryScreen extends StatefulWidget {
   const CountryScreen({super.key});
@@ -29,11 +30,12 @@ class _CountryScreenState extends State<CountryScreen> {
   final _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
-  late CountryRepository _countryRepository;
+  CountryRepository? _countryRepository;
   Timer? _syncTimer;
   int _totalRecords = 0;
   int _syncedRecords = 0;
   int _pendingRecords = 0;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   @override
   void initState() {
@@ -44,32 +46,74 @@ class _CountryScreenState extends State<CountryScreen> {
     });
 
     _syncTimer = Timer.periodic(Duration(seconds: 30), (timer) {
-      _syncDataSilently();
+      _checkConnectivityAndSync();
+    });
+
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      if (!result.contains(ConnectivityResult.none)) {
+        _syncFromServer();
+      }
     });
   }
 
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    _syncTimer?.cancel();
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initializeDatabase() async {
-    final db = await DatabaseProvider.database;
-    _countryRepository = CountryRepository(db.countryDao);
-    _loadLocalCountries();
-    _loadSyncStats();
-    _syncFromServer();
+    try {
+      final db = await DatabaseProvider.database;
+      if (mounted) {
+        _countryRepository = CountryRepository(db.countryDao);
+        await _loadLocalCountries();
+        await _loadSyncStats();
+        _checkConnectivityAndSync();
+      }
+    } catch (e) {
+      print('Database Init Error: $e');
+      if (mounted) {
+        setState(() {
+          _error = 'Database Error: $e\nTry restarting the app.';
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to initialize database: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: _initializeDatabase,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _checkConnectivityAndSync() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (!connectivityResult.contains(ConnectivityResult.none)) {
+      _syncFromServer();
+    }
   }
 
   Future<void> _loadLocalCountries() async {
+    if (_countryRepository == null) return;
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final countries = await _countryRepository.getAllCountries();
-      print('Loaded ${countries.length} countries from database');
-      for (var country in countries) {
-        print(
-          'Country: ${country.name}, Server ID: ${country.serverId}, Local ID: ${country.id}',
-        );
-      }
-
+      final countries = await _countryRepository!.getAllCountries();
       setState(() {
         _countries = countries;
         _filteredCountries = List.from(_countries);
@@ -84,72 +128,97 @@ class _CountryScreenState extends State<CountryScreen> {
   }
 
   Future<void> _loadSyncStats() async {
-    _totalRecords = await _countryRepository.getTotalCount();
-    _syncedRecords = await _countryRepository.getSyncedCount();
-    _pendingRecords = await _countryRepository.getPendingCount();
-    setState(() {});
+    if (_countryRepository == null) return;
+    _totalRecords = await _countryRepository!.getTotalCount();
+    _syncedRecords = await _countryRepository!.getSyncedCount();
+    _pendingRecords = await _countryRepository!.getPendingCount();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _syncFromServer() async {
-    if (_isSyncing) return;
+    if (_isSyncing || _countryRepository == null) return;
     setState(() {
       _isSyncing = true;
     });
+
     try {
-      final response = await http
-          .get(Uri.parse('http://202.140.138.215:85/api/CountryApi'))
-          .timeout(Duration(seconds: 10));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (data['success'] == true) {
-          final List<dynamic> countriesData = data['data'];
-          print('Received ${countriesData.length} countries from server');
-          final List<Map<String, dynamic>> countryList = countriesData
-              .map<Map<String, dynamic>>((item) {
-                if (item is Map<String, dynamic>) {
-                  return item;
-                } else if (item is Map) {
-                  return Map<String, dynamic>.from(item);
-                }
-                return <String, dynamic>{};
-              })
-              .where((map) => map.isNotEmpty)
-              .toList();
-          await _countryRepository.syncFromServer(countryList);
-          await _loadLocalCountries();
-          await _loadSyncStats();
-          await _syncPendingChanges();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text('Sync completed successfully'),
-                  ],
+      // 2. Pull: Get latest data from server
+      try {
+        final response = await http
+            .get(Uri.parse('http://202.140.138.215:85/api/CountryApi'))
+            .timeout(Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = json.decode(response.body);
+          if (data['success'] == true) {
+            final List<dynamic> countriesData = data['data'];
+
+            final List<Map<String, dynamic>> countryList = countriesData
+                .map<Map<String, dynamic>>((item) {
+                  if (item is Map<String, dynamic>) {
+                    return item;
+                  } else if (item is Map) {
+                    return Map<String, dynamic>.from(item);
+                  }
+                  return <String, dynamic>{};
+                })
+                .where((map) => map.isNotEmpty)
+                .toList();
+            await _countryRepository!.syncFromServer(countryList);
+            await _loadLocalCountries();
+            await _loadSyncStats();
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(Icons.cloud_done, color: Colors.white, size: 20),
+                      SizedBox(width: 8),
+                      Text('Sync completed successfully'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            );
+              );
+            }
           }
         }
+      } catch (e) {
+        print('Pull failed: $e');
       }
+
+      await _syncPendingChanges(isAutoCall: true);
     } catch (e) {
-      print('Sync failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sync failed: $e'),
-            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                Icon(Icons.perm_scan_wifi, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Sync failed: Check connection'),
+              ],
+            ),
+            backgroundColor: Colors.red.shade400,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
     } finally {
+      // Always refresh local data and stats to ensure UI is up to date
+      await _loadLocalCountries();
+      await _loadSyncStats();
+
       if (mounted) {
         setState(() {
           _isSyncing = false;
@@ -158,106 +227,86 @@ class _CountryScreenState extends State<CountryScreen> {
     }
   }
 
-  Future<void> _syncPendingChanges() async {
+  Future<void> _syncPendingChanges({bool isAutoCall = false}) async {
+    if (_countryRepository == null) return;
     try {
-      final pendingCountries = await _countryRepository.getPendingSync();
+      final pendingCountries = await _countryRepository!.getPendingSync();
+      if (pendingCountries.isEmpty) return;
       for (final country in pendingCountries) {
-        if (country.isDeleted) {
-          if (country.serverId != null) {
-            await _deleteFromServer(country.serverId!);
-            await _countryRepository.markAsSynced(country.id!);
+        try {
+          final requestBody = {
+            "id": 0,
+            "name": country.name,
+            "data": [
+              {
+                "created":
+                    country.createdAt ?? DateTime.now().toIso8601String(),
+                "createdBy": "system",
+                "lastModified":
+                    country.lastModified ?? DateTime.now().toIso8601String(),
+                "lastModifiedBy": "system",
+                "deleted": country.isDeleted
+                    ? DateTime.now().toIso8601String()
+                    : null,
+                "deletedBy": country.isDeleted ? "system" : null,
+                "id": country.serverId ?? 0,
+                "name": country.name,
+              },
+            ],
+          };
+
+          final response = await http
+              .post(
+                Uri.parse('http://202.140.138.215:85/api/CountryApi'),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode(requestBody),
+              )
+              .timeout(Duration(seconds: 60));
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            try {
+              final responseData = json.decode(response.body);
+              if (responseData is Map && responseData['data'] is List) {
+                final serverList = responseData['data'] as List;
+                // Find matching server record for this specific country
+                var match = serverList.firstWhere(
+                  (s) => s['name'] == country.name,
+                  orElse: () => null,
+                );
+
+                if (match != null && match['id'] != null) {
+                  country.serverId = match['id'];
+                }
+              }
+              country.isSynced = true;
+              country.syncStatus = 'synced';
+              await _countryRepository!.updateSyncedCountry(country);
+            } catch (e) {
+              print('Error updating local record after sync: $e');
+              await _countryRepository!.markAsSynced(country.id!);
+            }
           } else {
-            await _countryRepository.markAsSynced(country.id!);
+            print('Failed to sync ${country.name}: ${response.statusCode}');
           }
-        } else if (country.serverId == null) {
-          final serverId = await _addToServer(country);
-          if (serverId != null) {
-            country.serverId = serverId;
-            await _countryRepository.updateCountry(country);
-            await _countryRepository.markAsSynced(country.id!);
-          }
-        } else {
-          final success = await _updateOnServer(country);
-          if (success) {
-            await _countryRepository.markAsSynced(country.id!);
-          }
+        } catch (e) {
+          print('Error syncing ${country.name}: $e');
         }
       }
 
       await _loadSyncStats();
+      await _loadLocalCountries();
     } catch (e) {
-      print('Pending sync failed: $e');
+      print('Pending sync loop failed: $e');
     }
   }
 
-  Future<void> _syncDataSilently() async {
-    try {
-      await _syncPendingChanges();
-    } catch (e) {
-      print('Silent sync failed: $e');
-    }
-  }
-
-  Future<int?> _addToServer(CountryEntity country) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('http://202.140.138.215:85/api/CountryApi'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'id': 0, 'name': country.name}),
-          )
-          .timeout(Duration(seconds: 5));
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return data['id'] as int?;
-      }
-    } catch (e) {
-      print('Add to server failed: $e');
-    }
-    return null;
-  }
-
-  Future<bool> _updateOnServer(CountryEntity country) async {
-    try {
-      final response = await http
-          .put(
-            Uri.parse(
-              'http://202.140.138.215:85/api/CountryApi/${country.serverId}',
-            ),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'id': country.serverId, 'name': country.name}),
-          )
-          .timeout(Duration(seconds: 5));
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Update on server failed: $e');
-      return false;
-    }
-  }
+  // Legacy helper methods removed as we use batch sync now.
 
   final List<String> _bannerImages = [
     'assets/indflag.jpg',
     'assets/isrflag.jpg',
     'assets/russianflag.png',
   ];
-
-  Future<bool> _deleteFromServer(int serverId) async {
-    try {
-      final response = await http
-          .delete(
-            Uri.parse('http://202.140.138.215:85/api/CountryApi/$serverId'),
-            headers: {'Content-Type': 'application/json'},
-          )
-          .timeout(Duration(seconds: 5));
-
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      print('Delete from server failed: $e');
-      return false;
-    }
-  }
 
   void _filterCountries(String query) {
     setState(() {
@@ -274,36 +323,90 @@ class _CountryScreenState extends State<CountryScreen> {
     });
   }
 
-  Future<void> _addCountry(String countryName) async {
+  Future<void> _addCountry(String countryNameInput) async {
+    if (_countryRepository == null) return;
+    final countryName = countryNameInput.trim();
     setState(() {
       _isLoading = true;
     });
 
     try {
+      final exists = await _countryRepository!.countryExists(countryName);
+      if (exists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text('Country "$countryName" already exists'),
+                ],
+              ),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
       final country = CountryEntity(
         name: countryName,
         createdAt: DateTime.now().toIso8601String(),
         isSynced: false,
+        syncStatus: 'pending',
       );
 
-      await _countryRepository.insertCountry(country);
+      // Check connectivity
+      final connectivityResult = await Connectivity().checkConnectivity();
+      final bool isOnline = !connectivityResult.contains(
+        ConnectivityResult.none,
+      );
+
+      if (isOnline) {
+        // Try direct API save
+        final success = await _saveToServerDirectly(country);
+        if (success) {
+          country.isSynced = true;
+          country.syncStatus = 'synced';
+          country.serverId =
+              0; // We might update this on next full sync if we don't get ID back
+        }
+      }
+
+      await _countryRepository!.insertCountry(country);
 
       await _loadLocalCountries();
       await _loadSyncStats();
 
-      await _syncPendingChanges();
+      // If we failed to sync directly even though we thought we could,
+      // or if we were offline, the background sync or manual sync will pick it up.
 
       if (mounted) {
+        final message = country.isSynced
+            ? '$countryName saved & synced'
+            : '$countryName saved (Offline - Pending)';
+        final color = country.isSynced ? Colors.green : Colors.orange;
+        final icon = country.isSynced ? Icons.check_circle : Icons.cloud_off;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.save, color: Colors.white, size: 20),
+                Icon(icon, color: Colors.white, size: 20),
                 SizedBox(width: 8),
-                Text('$countryName saved locally'),
+                Text(message),
               ],
             ),
-            backgroundColor: Colors.blue,
+            backgroundColor: color,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -341,17 +444,55 @@ class _CountryScreenState extends State<CountryScreen> {
     }
   }
 
+  Future<bool> _saveToServerDirectly(CountryEntity country) async {
+    try {
+      final requestBody = {
+        "id": 0,
+        "name": country.name,
+        "data": [
+          {
+            "created": country.createdAt ?? DateTime.now().toIso8601String(),
+            "createdBy": "system",
+            "lastModified":
+                country.lastModified ?? DateTime.now().toIso8601String(),
+            "lastModifiedBy": "system",
+            "deleted": null,
+            "deletedBy": null,
+            "id": 0,
+            "name": country.name,
+          },
+        ],
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('http://202.140.138.215:85/api/CountryApi'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(requestBody),
+          )
+          .timeout(Duration(seconds: 10));
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('Direct save failed: $e');
+      return false;
+    }
+  }
+
   Future<bool> _deleteCountry(int countryId) async {
+    if (_countryRepository == null) return false;
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _countryRepository.deleteCountry(countryId);
+      await _countryRepository!.deleteCountry(countryId);
       await _loadLocalCountries();
       await _loadSyncStats();
 
-      await _syncPendingChanges();
+      // Use syncFromServer to ensure we Pull before Pushing any pending changes
+      // This prevents "Blind Push" duplicates if there are other pending items
+      await _syncFromServer();
 
       return true;
     } catch (e) {
@@ -894,13 +1035,6 @@ class _CountryScreenState extends State<CountryScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _syncTimer?.cancel();
-    super.dispose();
   }
 
   @override

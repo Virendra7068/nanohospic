@@ -28,7 +28,6 @@ abstract class CountryDao {
   @Query('SELECT COUNT(*) FROM countries WHERE is_deleted = 0 AND (is_synced = 0 OR sync_status = "pending" OR sync_status = "failed")')
   Future<int?> getPendingCountriesCount();
 
-  // Fixed to return nullable
   @Query('UPDATE countries SET is_deleted = 1, deleted_by = "system", sync_status = "pending" WHERE id = :id')
   Future<int?> markAsDeleted(int id);
 

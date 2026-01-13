@@ -5,6 +5,8 @@ import 'package:nanohospic/screens/master/area/country_screen.dart';
 import 'package:nanohospic/screens/get_patient_list.dart';
 import 'package:nanohospic/screens/get_pharmacy_list.dart';
 import 'package:nanohospic/screens/hsn_screen.dart';
+import 'package:nanohospic/screens/master/staff/department_screen.dart';
+import 'package:nanohospic/screens/master/staff/designation_screen.dart';
 import 'package:nanohospic/screens/master/staff/staff_list_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -101,6 +103,54 @@ class _StaffWidgetState extends State<StaffWidget> {
                     end: end,
                   ).chain(CurveTween(curve: curve));
 
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+          break;
+      case "Department":
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                DepartmentListScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+          break;
+      case "Designation":
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                DesignationScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
                   return SlideTransition(
                     position: animation.drive(tween),
                     child: child,

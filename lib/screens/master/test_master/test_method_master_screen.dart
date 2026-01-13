@@ -41,7 +41,6 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
     _searchController.addListener(() {
       _filterTestMethods(_searchController.text);
     });
-
     _syncTimer = Timer.periodic(Duration(seconds: 30), (timer) {
       _syncDataSilently();
     });
@@ -59,11 +58,9 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final testMethods = await _testMethodRepository.getAllTestMethods();
       print('Loaded ${testMethods.length} test methods from database');
-
       setState(() {
         _testMethods = testMethods;
         _filteredTestMethods = List.from(_testMethods);
@@ -205,7 +202,6 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
             }),
           )
           .timeout(Duration(seconds: 5));
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         return data['id'] as int?;
@@ -231,7 +227,6 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
             }),
           )
           .timeout(Duration(seconds: 5));
-
       return response.statusCode == 200;
     } catch (e) {
       print('Update on server failed: $e');
@@ -253,7 +248,6 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
             headers: {'Content-Type': 'application/json'},
           )
           .timeout(Duration(seconds: 5));
-
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Delete from server failed: $e');
@@ -269,12 +263,12 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
         _filteredTestMethods = _testMethods
             .where(
               (testMethod) =>
-                  testMethod.methodName
-                      .toLowerCase()
-                      .contains(query.toLowerCase()) ||
-                  testMethod.description
-                      .toLowerCase()
-                      .contains(query.toLowerCase()),
+                  testMethod.methodName.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ||
+                  testMethod.description.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ),
             )
             .toList();
       }
@@ -439,7 +433,9 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           Navigator.of(context).pop();
-                          final success = await _deleteTestMethod(testMethod.id!);
+                          final success = await _deleteTestMethod(
+                            testMethod.id!,
+                          );
 
                           if (success && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -452,7 +448,9 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
-                                    Text('Test Method "${testMethod.methodName}" deleted'),
+                                    Text(
+                                      'Test Method "${testMethod.methodName}" deleted',
+                                    ),
                                   ],
                                 ),
                                 backgroundColor: Colors.green,
@@ -537,17 +535,16 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.deepPurple.shade400, Colors.deepPurple.shade600],
+                      colors: [
+                        Colors.deepPurple.shade400,
+                        Colors.deepPurple.shade600,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.science,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                  child: Icon(Icons.science, color: Colors.white, size: 32),
                 ),
                 SizedBox(height: 20),
                 Text(
@@ -573,7 +570,10 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+                      borderSide: BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: Colors.deepPurple.shade50,
@@ -581,7 +581,10 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     prefixIcon: Container(
                       margin: EdgeInsets.only(right: 8, left: 12),
-                      child: Icon(Icons.science, color: Colors.deepPurple.shade600),
+                      child: Icon(
+                        Icons.science,
+                        color: Colors.deepPurple.shade600,
+                      ),
                     ),
                     prefixIconConstraints: BoxConstraints(minWidth: 40),
                   ),
@@ -603,7 +606,10 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+                      borderSide: BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: Colors.deepPurple.shade50,
@@ -611,7 +617,10 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     prefixIcon: Container(
                       margin: EdgeInsets.only(right: 8, left: 12),
-                      child: Icon(Icons.description, color: Colors.deepPurple.shade600),
+                      child: Icon(
+                        Icons.description,
+                        color: Colors.deepPurple.shade600,
+                      ),
                     ),
                     prefixIconConstraints: BoxConstraints(minWidth: 40),
                   ),
@@ -655,7 +664,9 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                                             size: 20,
                                           ),
                                           SizedBox(width: 8),
-                                          Text('Please enter a test method name'),
+                                          Text(
+                                            'Please enter a test method name',
+                                          ),
                                         ],
                                       ),
                                       backgroundColor: Colors.orange,
@@ -934,7 +945,7 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
             ),
           ),
         ],
-      )
+      ),
     );
   }
 
@@ -1130,7 +1141,9 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
   }
 
   Widget _buildBody() {
-    final displayTestMethods = _isSearching ? _filteredTestMethods : _testMethods;
+    final displayTestMethods = _isSearching
+        ? _filteredTestMethods
+        : _testMethods;
 
     if (_isLoading && _testMethods.isEmpty) {
       return Center(
@@ -1243,7 +1256,10 @@ class _TestMethodScreenState extends State<TestMethodScreen> {
                     height: 120,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.deepPurple.shade100, Colors.deepPurple.shade200],
+                        colors: [
+                          Colors.deepPurple.shade100,
+                          Colors.deepPurple.shade200,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

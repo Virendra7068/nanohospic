@@ -8,7 +8,6 @@ class UnitRepository {
 
   UnitRepository(this._unitDao);
 
-  // Local database operations
   Future<List<UnitEntity>> getAllUnits() async {
     return await _unitDao.getAllUnits();
   }
@@ -26,11 +25,9 @@ class UnitRepository {
   }
 
   Future<int> insertUnit(UnitEntity unit) async {
-    // Set sync status to pending for new entries
     unit.isSynced = false;
     unit.syncStatus = 'pending';
     unit.createdAt = DateTime.now().toIso8601String();
-    
     return await _unitDao.insertUnit(unit);
   }
 
@@ -39,7 +36,7 @@ class UnitRepository {
     unit.lastModified = DateTime.now().toIso8601String();
     unit.isSynced = false;
     unit.syncStatus = 'pending';
-    
+
     return await _unitDao.updateUnit(unit);
   }
 
@@ -102,7 +99,7 @@ class UnitRepository {
       try {
         // Convert dynamic to Map<String, dynamic>
         Map<String, dynamic> unitData;
-        
+
         if (item is Map<String, dynamic>) {
           unitData = item;
         } else if (item is Map) {
@@ -110,12 +107,12 @@ class UnitRepository {
         } else {
           continue; // Skip invalid data
         }
-        
+
         final serverId = _parseInt(unitData['id']);
         if (serverId == 0) continue; // Skip invalid IDs
-        
+
         final existing = await getUnitByServerId(serverId);
-        
+
         if (existing == null) {
           // Insert new unit from server
           final unit = UnitEntity(
@@ -137,8 +134,11 @@ class UnitRepository {
             name: unitData['name']?.toString() ?? existing.name,
             createdAt: existing.createdAt,
             createdBy: existing.createdBy,
-            lastModified: unitData['lastModified']?.toString() ?? existing.lastModified,
-            lastModifiedBy: unitData['lastModifiedBy']?.toString() ?? existing.lastModifiedBy,
+            lastModified:
+                unitData['lastModified']?.toString() ?? existing.lastModified,
+            lastModifiedBy:
+                unitData['lastModifiedBy']?.toString() ??
+                existing.lastModifiedBy,
             isDeleted: existing.isDeleted,
             deletedBy: existing.deletedBy,
             isSynced: true,

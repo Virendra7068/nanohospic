@@ -42,6 +42,9 @@ import 'package:nanohospic/database/dao/branch_type_dao.dart';
 import 'package:nanohospic/database/dao/city_dao.dart';
 import 'package:nanohospic/database/dao/collection_center_dao.dart';
 import 'package:nanohospic/database/dao/country_dao_screen.dart';
+import 'package:nanohospic/database/dao/department_dao.dart';
+import 'package:nanohospic/database/dao/designation_dao.dart';
+import 'package:nanohospic/database/dao/division_dao.dart';
 import 'package:nanohospic/database/dao/doctor_commision_dao.dart';
 import 'package:nanohospic/database/dao/group_dao.dart';
 import 'package:nanohospic/database/dao/hsn_dao.dart';
@@ -65,6 +68,9 @@ import 'package:nanohospic/database/entity/category_entity.dart';
 import 'package:nanohospic/database/entity/city_entity.dart';
 import 'package:nanohospic/database/entity/collection_center_entity.dart';
 import 'package:nanohospic/database/entity/country_entity.dart';
+import 'package:nanohospic/database/entity/department_entity.dart';
+import 'package:nanohospic/database/entity/designation_entity.dart';
+import 'package:nanohospic/database/entity/division_entity.dart';
 import 'package:nanohospic/database/entity/doctor_commision_entity.dart';
 import 'package:nanohospic/database/entity/group_entity.dart';
 import 'package:nanohospic/database/entity/hsn_entity.dart';
@@ -109,7 +115,10 @@ part 'app_database.g.dart';
     ReferrerEntity,
     DoctorCommissionEntity,
     InstrumentEntity,
-    TestMethodEntity
+    TestMethodEntity,
+    DepartmentEntity,
+    DesignationEntity,
+    DivisionEntity,
   ],
 )
 abstract class AppDatabase extends FloorDatabase {
@@ -135,4 +144,7 @@ abstract class AppDatabase extends FloorDatabase {
   DoctorCommissionDao get doctorCommissionDao;
   InstrumentDao get instrumentDao;
   TestMethodDao get testMethodDao;
+  DepartmentDao get departmentDao;
+  DesignationDao get designationDao;
+  DivisionDao get divisionDao;
 }

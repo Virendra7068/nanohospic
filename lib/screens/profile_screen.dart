@@ -1,7 +1,8 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nanohospic/screens/master_cat_screen.dart';
 import 'package:nanohospic/screens/master_item.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,8 +19,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   late AnimationController _controller;
   late Animation<double> _animation;
   final double profileCompletion = 0.85;
-
-  // User data variables
   String _userName = '';
   String _email = '';
   String _role = '';
@@ -45,8 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       });
 
       final prefs = await SharedPreferences.getInstance();
-
-      // Load user data from shared preferences
       setState(() {
         _userName = prefs.getString('userName') ?? 'User';
         _email = prefs.getString('email') ?? 'user@example.com';
@@ -70,9 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
         child: Container(
           padding: EdgeInsets.all(24),
@@ -90,11 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                child: Icon(Icons.edit, color: Colors.white, size: 32),
               ),
               SizedBox(height: 20),
               Text(
@@ -241,7 +232,6 @@ class _ProfileScreenState extends State<ProfileScreen>
         await prefs.setString('userName', nameController.text);
         await prefs.setString('email', emailController.text);
         await prefs.setString('phoneNumber', phoneController.text);
-
         setState(() {
           _userName = nameController.text;
           _email = emailController.text;
@@ -287,9 +277,17 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   final List<Map<String, dynamic>> settingsItems = [
     {'icon': Icons.category, 'title': 'Master', 'trailing': '>'},
-    {'icon': Icons.shopping_cart, 'title': 'Patient Registration', 'trailing': '>'},
+    {
+      'icon': Icons.shopping_cart,
+      'title': 'Patient Registration',
+      'trailing': '>',
+    },
     {'icon': Icons.pending, 'title': 'Pending Prescription', 'trailing': '>'},
-    {'icon': Icons.production_quantity_limits, 'title': 'Sales', 'trailing': '>'},
+    {
+      'icon': Icons.production_quantity_limits,
+      'title': 'Sales',
+      'trailing': '>',
+    },
     {'icon': Icons.report, 'title': 'Report Generation', 'trailing': '>'},
     {'icon': Icons.report, 'title': 'Report', 'trailing': '>'},
     {'icon': Icons.settings, 'title': 'Settings', 'trailing': '>'},
@@ -297,7 +295,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   ];
 
   Future<void> _showLogoutConfirmation() async {
-    final shouldLogout = await showDialog<bool>(
+    final shouldLogout =
+        await showDialog<bool>(
           context: context,
           builder: (context) => _buildLogoutDialog(context),
         ) ??
@@ -310,9 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildLogoutDialog(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
       child: Container(
         padding: EdgeInsets.all(24),
@@ -326,11 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 color: Colors.red.shade50,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.logout,
-                color: Colors.red,
-                size: 32,
-              ),
+              child: Icon(Icons.logout, color: Colors.red, size: 32),
             ),
             SizedBox(height: 20),
             Text(
@@ -648,7 +641,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.edit, color: Colors.white, size: 16),
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ),
                         SizedBox(width: 10),
                         Text(
@@ -705,11 +702,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
                 child: CircleAvatar(
                   backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Color(0xff016B61),
-                  ),
+                  child: Icon(Icons.person, size: 40, color: Color(0xff016B61)),
                 ),
               ),
             ),
@@ -816,13 +809,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(12), // ✅ Same border radius
+                    borderRadius: BorderRadius.circular(
+                      12,
+                    ), // ✅ Same border radius
                     boxShadow: [
                       BoxShadow(
-                        color: (item['title'] == 'Logout'
-                                ? Colors.red
-                                : Colors.blue)
-                            .withOpacity(0.3),
+                        color:
+                            (item['title'] == 'Logout'
+                                    ? Colors.red
+                                    : Colors.blue)
+                                .withOpacity(0.3),
                         blurRadius: 8,
                         offset: Offset(2, 2),
                       ),

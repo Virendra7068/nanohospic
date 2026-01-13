@@ -116,6 +116,12 @@ class _$AppDatabase extends AppDatabase {
 
   TestMethodDao? _testMethodDaoInstance;
 
+  DepartmentDao? _departmentDaoInstance;
+
+  DesignationDao? _designationDaoInstance;
+
+  DivisionDao? _divisionDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -133,7 +139,6 @@ class _$AppDatabase extends AppDatabase {
       onUpgrade: (database, startVersion, endVersion) async {
         await MigrationAdapter.runMigrations(
             database, startVersion, endVersion, migrations);
-
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
       },
       onCreate: (database, version) async {
@@ -181,7 +186,12 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `instruments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `machine_name` TEXT NOT NULL, `description` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `test_methods` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `method_name` TEXT NOT NULL, `description` TEXT NOT NULL, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL)');
-
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `department` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `description` TEXT, `created_at` TEXT NOT NULL, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `designation` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `description` TEXT, `created_at` TEXT NOT NULL, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `divisions` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `server_id` INTEGER, `name` TEXT NOT NULL, `company_id` INTEGER, `company_name` TEXT, `created_at` TEXT, `created_by` TEXT, `last_modified` TEXT, `last_modified_by` TEXT, `is_deleted` INTEGER NOT NULL, `deleted_by` TEXT, `is_synced` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, `last_sync_error` TEXT)');
         await callback?.onCreate?.call(database, version);
       },
     );
@@ -300,6 +310,22 @@ class _$AppDatabase extends AppDatabase {
   @override
   TestMethodDao get testMethodDao {
     return _testMethodDaoInstance ??= _$TestMethodDao(database, changeListener);
+  }
+
+  @override
+  DepartmentDao get departmentDao {
+    return _departmentDaoInstance ??= _$DepartmentDao(database, changeListener);
+  }
+
+  @override
+  DesignationDao get designationDao {
+    return _designationDaoInstance ??=
+        _$DesignationDao(database, changeListener);
+  }
+
+  @override
+  DivisionDao get divisionDao {
+    return _divisionDaoInstance ??= _$DivisionDao(database, changeListener);
   }
 }
 
@@ -6450,5 +6476,761 @@ class _$TestMethodDao extends TestMethodDao {
   Future<int> deleteTestMethod(TestMethodEntity testMethod) {
     return _testMethodEntityDeletionAdapter
         .deleteAndReturnChangedRows(testMethod);
+  }
+}
+
+class _$DepartmentDao extends DepartmentDao {
+  _$DepartmentDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _departmentEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'department',
+            (DepartmentEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                }),
+        _departmentEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'department',
+            ['id'],
+            (DepartmentEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<DepartmentEntity> _departmentEntityInsertionAdapter;
+
+  final UpdateAdapter<DepartmentEntity> _departmentEntityUpdateAdapter;
+
+  @override
+  Future<List<DepartmentEntity>> getAllDepartments() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM department WHERE is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<DepartmentEntity?> getDepartmentById(int id) async {
+    return _queryAdapter.query('SELECT * FROM department WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<DepartmentEntity?> getDepartmentByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM department WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<DepartmentEntity?> getDepartmentByName(String name) async {
+    return _queryAdapter.query(
+        'SELECT * FROM department WHERE name = ?1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [name]);
+  }
+
+  @override
+  Future<List<DepartmentEntity>> getPendingSync() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM department WHERE is_deleted = 0 AND is_synced = 0',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<List<DepartmentEntity>> getPendingDeletions() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM department WHERE is_deleted = 1 AND is_synced = 0',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<int?> getTotalCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM department WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM department WHERE is_synced = 1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM department WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<List<DepartmentEntity>> searchDepartments(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM department WHERE (name LIKE ?1 OR description LIKE ?1) AND is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => DepartmentEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, description: row['description'] as String?, createdAt: row['created_at'] as String, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: row['is_deleted'] as int, deletedBy: row['deleted_by'] as String?, isSynced: row['is_synced'] as int, syncStatus: row['sync_status'] as String?, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [query]);
+  }
+
+  @override
+  Future<void> markAsSynced(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE department SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> markSyncFailed(
+    int id,
+    String error,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE department SET is_synced = 0, sync_status = \"failed\", sync_attempts = sync_attempts + 1, last_sync_error = ?2 WHERE id = ?1',
+        arguments: [id, error]);
+  }
+
+  @override
+  Future<void> deleteDepartment(int id) async {
+    await _queryAdapter
+        .queryNoReturn('DELETE FROM department WHERE id = ?1', arguments: [id]);
+  }
+
+  @override
+  Future<void> softDeleteDepartment(
+    int id,
+    String deletedBy,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE department SET is_deleted = 1, deleted_by = ?2 WHERE id = ?1',
+        arguments: [id, deletedBy]);
+  }
+
+  @override
+  Future<void> cleanupDeleted() async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM department WHERE is_deleted = 1 AND is_synced = 1');
+  }
+
+  @override
+  Future<int> insertDepartment(DepartmentEntity department) {
+    return _departmentEntityInsertionAdapter.insertAndReturnId(
+        department, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateDepartment(DepartmentEntity department) async {
+    await _departmentEntityUpdateAdapter.update(
+        department, OnConflictStrategy.abort);
+  }
+}
+
+class _$DesignationDao extends DesignationDao {
+  _$DesignationDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _designationEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'designation',
+            (DesignationEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                }),
+        _designationEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'designation',
+            ['id'],
+            (DesignationEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'description': item.description,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<DesignationEntity> _designationEntityInsertionAdapter;
+
+  final UpdateAdapter<DesignationEntity> _designationEntityUpdateAdapter;
+
+  @override
+  Future<List<DesignationEntity>> getAllDesignations() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM designation WHERE is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<DesignationEntity?> getDesignationById(int id) async {
+    return _queryAdapter.query('SELECT * FROM designation WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<DesignationEntity?> getDesignationByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM designation WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<DesignationEntity?> getDesignationByName(String name) async {
+    return _queryAdapter.query(
+        'SELECT * FROM designation WHERE name = ?1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [name]);
+  }
+
+  @override
+  Future<List<DesignationEntity>> getPendingSync() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM designation WHERE is_deleted = 0 AND is_synced = 0',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<List<DesignationEntity>> getPendingDeletions() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM designation WHERE is_deleted = 1 AND is_synced = 0',
+        mapper: (Map<String, Object?> row) => DesignationEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            createdAt: row['created_at'] as String,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: row['is_deleted'] as int,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: row['is_synced'] as int,
+            syncStatus: row['sync_status'] as String?,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<int?> getTotalCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM designation WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM designation WHERE is_synced = 1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM designation WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<List<DesignationEntity>> searchDesignations(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM designation WHERE (name LIKE ?1 OR description LIKE ?1) AND is_deleted = 0 ORDER BY name ASC',
+        mapper: (Map<String, Object?> row) => DesignationEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, description: row['description'] as String?, createdAt: row['created_at'] as String, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: row['is_deleted'] as int, deletedBy: row['deleted_by'] as String?, isSynced: row['is_synced'] as int, syncStatus: row['sync_status'] as String?, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [query]);
+  }
+
+  @override
+  Future<void> markAsSynced(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE designation SET is_synced = 1, sync_status = \"synced\" WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> markSyncFailed(
+    int id,
+    String error,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE designation SET is_synced = 0, sync_status = \"failed\", sync_attempts = sync_attempts + 1, last_sync_error = ?2 WHERE id = ?1',
+        arguments: [id, error]);
+  }
+
+  @override
+  Future<void> deleteDesignation(int id) async {
+    await _queryAdapter.queryNoReturn('DELETE FROM designation WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> softDeleteDesignation(
+    int id,
+    String deletedBy,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE designation SET is_deleted = 1, deleted_by = ?2 WHERE id = ?1',
+        arguments: [id, deletedBy]);
+  }
+
+  @override
+  Future<void> cleanupDeleted() async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM designation WHERE is_deleted = 1 AND is_synced = 1');
+  }
+
+  @override
+  Future<int> insertDesignation(DesignationEntity designation) {
+    return _designationEntityInsertionAdapter.insertAndReturnId(
+        designation, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateDesignation(DesignationEntity designation) async {
+    await _designationEntityUpdateAdapter.update(
+        designation, OnConflictStrategy.abort);
+  }
+}
+
+class _$DivisionDao extends DivisionDao {
+  _$DivisionDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _divisionEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'divisions',
+            (DivisionEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'company_id': item.companyId,
+                  'company_name': item.companyName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                }),
+        _divisionEntityUpdateAdapter = UpdateAdapter(
+            database,
+            'divisions',
+            ['id'],
+            (DivisionEntity item) => <String, Object?>{
+                  'id': item.id,
+                  'server_id': item.serverId,
+                  'name': item.name,
+                  'company_id': item.companyId,
+                  'company_name': item.companyName,
+                  'created_at': item.createdAt,
+                  'created_by': item.createdBy,
+                  'last_modified': item.lastModified,
+                  'last_modified_by': item.lastModifiedBy,
+                  'is_deleted': item.isDeleted ? 1 : 0,
+                  'deleted_by': item.deletedBy,
+                  'is_synced': item.isSynced ? 1 : 0,
+                  'sync_status': item.syncStatus,
+                  'sync_attempts': item.syncAttempts,
+                  'last_sync_error': item.lastSyncError
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<DivisionEntity> _divisionEntityInsertionAdapter;
+
+  final UpdateAdapter<DivisionEntity> _divisionEntityUpdateAdapter;
+
+  @override
+  Future<List<DivisionEntity>> getAllDivisions() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM divisions WHERE is_deleted = 0 ORDER BY name',
+        mapper: (Map<String, Object?> row) => DivisionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            companyId: row['company_id'] as int?,
+            companyName: row['company_name'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<DivisionEntity?> getDivisionById(int id) async {
+    return _queryAdapter.query('SELECT * FROM divisions WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => DivisionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            companyId: row['company_id'] as int?,
+            companyName: row['company_name'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<DivisionEntity?> getDivisionByServerId(int serverId) async {
+    return _queryAdapter.query('SELECT * FROM divisions WHERE server_id = ?1',
+        mapper: (Map<String, Object?> row) => DivisionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            companyId: row['company_id'] as int?,
+            companyName: row['company_name'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?),
+        arguments: [serverId]);
+  }
+
+  @override
+  Future<List<DivisionEntity>> getPendingSync() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM divisions WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => DivisionEntity(
+            id: row['id'] as int?,
+            serverId: row['server_id'] as int?,
+            name: row['name'] as String,
+            companyId: row['company_id'] as int?,
+            companyName: row['company_name'] as String?,
+            createdAt: row['created_at'] as String?,
+            createdBy: row['created_by'] as String?,
+            lastModified: row['last_modified'] as String?,
+            lastModifiedBy: row['last_modified_by'] as String?,
+            isDeleted: (row['is_deleted'] as int) != 0,
+            deletedBy: row['deleted_by'] as String?,
+            isSynced: (row['is_synced'] as int) != 0,
+            syncStatus: row['sync_status'] as String,
+            syncAttempts: row['sync_attempts'] as int,
+            lastSyncError: row['last_sync_error'] as String?));
+  }
+
+  @override
+  Future<int?> getTotalCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM divisions WHERE is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getSyncedCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM divisions WHERE is_synced = 1 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getPendingCount() async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM divisions WHERE is_synced = 0 AND is_deleted = 0',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<List<DivisionEntity>> searchDivisions(String query) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM divisions WHERE name LIKE ?1 AND is_deleted = 0 ORDER BY name',
+        mapper: (Map<String, Object?> row) => DivisionEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, companyId: row['company_id'] as int?, companyName: row['company_name'] as String?, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [query]);
+  }
+
+  @override
+  Future<List<DivisionEntity>> getDivisionsByCompany(int companyId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM divisions WHERE company_id = ?1 AND is_deleted = 0 ORDER BY name',
+        mapper: (Map<String, Object?> row) => DivisionEntity(id: row['id'] as int?, serverId: row['server_id'] as int?, name: row['name'] as String, companyId: row['company_id'] as int?, companyName: row['company_name'] as String?, createdAt: row['created_at'] as String?, createdBy: row['created_by'] as String?, lastModified: row['last_modified'] as String?, lastModifiedBy: row['last_modified_by'] as String?, isDeleted: (row['is_deleted'] as int) != 0, deletedBy: row['deleted_by'] as String?, isSynced: (row['is_synced'] as int) != 0, syncStatus: row['sync_status'] as String, syncAttempts: row['sync_attempts'] as int, lastSyncError: row['last_sync_error'] as String?),
+        arguments: [companyId]);
+  }
+
+  @override
+  Future<void> softDeleteDivision(
+    int id,
+    String deletedBy,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE divisions SET is_deleted = 1, deleted_by = ?2, is_synced = 0, sync_status = \'pending\' WHERE id = ?1',
+        arguments: [id, deletedBy]);
+  }
+
+  @override
+  Future<void> markAsSynced(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE divisions SET is_synced = 1, sync_status = \'synced\' WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> markAsFailed(int id) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE divisions SET sync_status = \'failed\' WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> deleteDivision(int id) async {
+    await _queryAdapter
+        .queryNoReturn('DELETE FROM divisions WHERE id = ?1', arguments: [id]);
+  }
+
+  @override
+  Future<void> deleteAllDivisions() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM divisions');
+  }
+
+  @override
+  Future<void> insertDivision(DivisionEntity division) async {
+    await _divisionEntityInsertionAdapter.insert(
+        division, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateDivision(DivisionEntity division) async {
+    await _divisionEntityUpdateAdapter.update(
+        division, OnConflictStrategy.replace);
   }
 }
